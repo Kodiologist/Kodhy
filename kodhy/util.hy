@@ -67,7 +67,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (setv chunk (if (instance? pd.Series chunk)
         (.copy chunk)
         (pd.Series chunk)))
-      (setv (. chunk name) (slice x 2))
+      (setv (. chunk name) (keyword->str x))
       (.append chunks chunk))
     ; else
       (.append chunks (if (instance? pd.DataFrame x)
@@ -144,6 +144,11 @@ without newlines outside string literals."
     [True
       (unicode x)]))
 
+(defn keyword->str [x]
+  (if (keyword? x)
+    (slice x 2)
+    x))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Lists and other basic data structures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -168,6 +173,13 @@ without newlines outside string literals."
       (raise (LookupError "No match"))]
     [True
       (get obj (get keys 0))]))
+
+(defn pairs [&rest a]
+  (setv a (list a))
+  (setv r [])
+  (while a
+    (.append r (, (keyword->str (shift a)) (keyword->str (shift a)))))
+  r)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Higher-order functions
