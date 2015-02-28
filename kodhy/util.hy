@@ -133,6 +133,8 @@ without newlines outside string literals."
       (.format "({})" (.join " " (list (map show-expr x))))]
     [(instance? HyDict x)
       (.format "{{{}}}" (.join " " (list (map show-expr x))))]
+    [(keyword? x)
+      (+ ":" (keyword->str x))]
     [(instance? HySymbol x)
       (unicode x)]
     [(instance? list x)
