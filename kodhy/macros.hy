@@ -48,6 +48,9 @@
 (defmacro fmap [gen-expr filter-expr args]
   `(list-comp ~gen-expr [it ~args] ~filter-expr))
 
+(defmacro replicate [n &rest body]
+  `(list (map (lambda [_] ~@body) (range ~n))))
+
 (defmacro λ [&rest body]
   `(lambda [it] ~@body))
 
