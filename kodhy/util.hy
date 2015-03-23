@@ -32,21 +32,8 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 
 (defn valcounts [x]
   (import [pandas :as pd])
-;  (setv vc (kwc .value-counts x :!sort :!dropna))
-  (setv vc (kwc .value-counts x :!sort
-    :dropna (.all (.notnull x))))
-  (if (pd.core.common.is-categorical-dtype x.dtype) (do
-    (setv vc (getl vc (list x.cat.categories)))
-    (when (.any (.isnull x))
-      ; Workaround for https://github.com/pydata/pandas/issues/9443 .
-      (setv vc (.append
-        (kwc pd.Series
-          [(.sum (.isnull x))]
-          :index ["N/A"])
-        vc)))
-    vc)
-  ; else
-    (.sort-index vc)))
+  (.rename (kwc .value-counts x :!sort :!dropna)
+    (λ (if (pd.isnull it) "N/A" it))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Matrices and DataFrames
