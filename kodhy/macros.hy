@@ -48,6 +48,18 @@
 (defmacro fmap [gen-expr filter-expr args]
   `(list-comp ~gen-expr [it ~args] ~filter-expr))
 
+(defmacro afind [expr args]
+  `(try
+    (next (filter (lambda [it] ~expr) ~args))
+    (catch [_ StopIteration] (raise (ValueError "afind: no matching value found")))))
+
+(defmacro afind-or [expr args &optional [def 'None]]
+"The default expression 'def' is evaluated (and its value returned)
+if no matching value is found."
+  `(try
+    (next (filter (lambda [it] ~expr) ~args))
+    (catch [_ StopIteration] ~def)))
+
 (defmacro replicate [n &rest body]
   `(list (map (lambda [_] ~@body) (range ~n))))
 
