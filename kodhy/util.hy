@@ -4,6 +4,11 @@
 ;; * Numbers and arrays
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn signum [x] (cond
+  [(< x 0) -1]
+  [(> x 0)  1]
+  [True     0]))
+
 (defn logit [x]
   (import numpy)
   (numpy.log (/ x (- 1 x))))
