@@ -60,6 +60,14 @@ if no matching value is found."
     (next (filter (lambda [it] ~expr) ~args))
     (catch [_ StopIteration] ~def)))
 
+(defmacro whenn [expr &rest body]
+"Analogus to Haskell's liftM for Maybe. Evaluates
+'expr' and, if its value is not None, evaluates 'body' with the
+value bound to 'it'."
+  `(let [[it ~expr]]
+    (when (is-not it None)
+      ~@body)))
+
 (defmacro replicate [n &rest body]
   `(list (map (lambda [_] ~@body) (range ~n))))
 
