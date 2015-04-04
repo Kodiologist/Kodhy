@@ -247,6 +247,24 @@ instead of calling `f` or consulting the existing cache."
   None)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; * Support for kodhy.macros
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defclass _KodhyBlockReturn [Exception] [
+  [__init__ (fn [self block-name value]
+    (setv self.block-name block-name)
+    (setv self.value value)
+    None)]])
+
+(defn ret [&optional value]
+"Return from the innermost 'block'."
+  (raise (_KodhyBlockReturn None value)))
+
+(defn retf [block-name &optional value]
+"Return from the innermost 'block' with the given name, a keyword."
+  (raise (_KodhyBlockReturn block-name value)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Plotting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

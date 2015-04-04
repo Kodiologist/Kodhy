@@ -71,6 +71,27 @@ value bound to 'it'."
 (defmacro replicate [n &rest body]
   `(list (map (lambda [_] ~@body) (range ~n))))
 
+(defmacro block [&rest body]
+"Evaluate the given expressions while allowing you to jump out
+with kodhy.util.ret and kodhy.util.retf. If the first element of
+'body' is a keyword, it becomes the name of the block.
+
+The value of the whole expression is that provided by 'ret' or
+'retf', if one of those was used, or the last expression otherwise."
+  (setv block-name 'None)
+  (when (and body (keyword? (first body)))
+    (setv [block-name body] [(first body) (rest body)]))
+  (setv r (gensym))
+  `(do (import [kodhy.util [_KodhyBlockReturn]]) (try
+    (do ~@body)
+    (catch [~r _KodhyBlockReturn]
+      (if (and (. ~r block-name) (!= (. ~r block-name) ~block-name))
+        ; If the return named a block, and its name doesn't
+        ; match ours, keep bubbling upwards.
+        (raise)
+        ; Otherwise, we can stop here. Return the return value.
+        (. ~r value))))))
+
 (defmacro λ [&rest body]
   `(lambda [it] ~@body))
 
