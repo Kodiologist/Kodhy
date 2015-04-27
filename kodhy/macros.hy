@@ -169,7 +169,7 @@ The replacement is recursive."
   `(let [[~df-sym ~df]] ~@body))
 
 (defmacro ss [df &rest body]
-"Subset. Evaluate `body` like `withc`, which should produce a
+"Subset. Evaluate `body` like `wc`, which should produce a
 boolean vector. Return `df` indexed by the boolean vector."
   (setv df-sym (gensym))
   (setv body (dollar-replace df-sym body))
