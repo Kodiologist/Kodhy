@@ -112,6 +112,11 @@ for each first-order interaction. Constant columns are removed."
 ;; * Strings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn cat [&rest args &kwargs kwargs]
+  (.join
+    (or (.get kwargs "sep") "")
+    (amap (if it (string it) "") args)))
+
 (defn double-quote [s]
   (.format "\"{}\""
     (.replace (.replace s "\\" "\\\\") "\"" "\\\"")))
