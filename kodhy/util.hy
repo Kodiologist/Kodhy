@@ -192,6 +192,22 @@ and should return a 1D nparray of predictions given x-test."
   y-pred)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; * Files
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn slurp [name &optional mode buffering]
+  (with [[o (apply open [name] (dict (+
+      (if (none? mode)      [] [(, "mode" mode)])
+      (if (none? buffering) [] [(, "buffering" buffering)]))))]]
+    (o.read)))
+
+(defn barf [name content &optional [mode "w"] buffering]
+  (with [[o (if (none? buffering)
+      (open name mode)
+      (open name mode buffering))]]
+    (o.write content)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Caching
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
