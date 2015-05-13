@@ -117,6 +117,9 @@ for each first-order interaction. Constant columns are removed."
     (or (.get kwargs "sep") "")
     (amap (if it (string it) "") args)))
 
+(defn ucfirst [s]
+  (and s (+ (.upper (first s)) (slice s 1))))
+
 (defn double-quote [s]
   (.format "\"{}\""
     (.replace (.replace s "\\" "\\\\") "\"" "\\\"")))
