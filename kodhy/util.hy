@@ -4,6 +4,18 @@
 ;; * Numbers and arrays
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defn xor [&rest args] (block
+  (setv v False)
+  (for [x args]
+    (if x
+      (do
+        (when v
+          (ret False))
+        (setv v x))
+      (unless v
+        (setv v x))))
+  v))
+
 (defn signum [x] (cond
   [(< x 0) -1]
   [(> x 0)  1]
