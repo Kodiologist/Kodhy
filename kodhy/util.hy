@@ -127,7 +127,7 @@ for each first-order interaction. Constant columns are removed."
 (defn cat [&rest args &kwargs kwargs]
   (.join
     (or (.get kwargs "sep") "")
-    (amap (if it (string it) "") args)))
+    (lc [x args] x (string x))))
 
 (defn ucfirst [s]
   (and s (+ (.upper (first s)) (slice s 1))))
