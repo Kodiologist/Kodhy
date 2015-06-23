@@ -48,6 +48,19 @@
 (defmacro fmap [gen-expr filter-expr args]
   `(list-comp ~gen-expr [it ~args] ~filter-expr))
 
+(defmacro/g! amap2 [expr args]
+; (amap (+ a b) (range 10))  =>  [1, 5, 9, 13]
+  `(let [[~g!args (list ~args)]]
+    (when (% (len ~g!args) 2)
+      (raise (ValueError "iterable argument must have an even number of elements")))
+    (list (map
+      (lambda [~g!i]
+        (let [
+            [a (get ~g!args ~g!i)]
+            [b (get ~g!args (+ 1 ~g!i))]]
+          ~expr))
+      (range 0 (len ~g!args) 2)))))
+
 (defmacro afind [expr args]
   `(try
     (next (filter (lambda [it] ~expr) ~args))
