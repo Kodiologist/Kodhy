@@ -163,6 +163,11 @@ without newlines outside string literals."
     (slice x 2)
     x))
 
+(defn str->keyword [x]
+  (if (keyword? x)
+    x
+    (+ "\ufdd0:" x)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Lists and other basic data structures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
