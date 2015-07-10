@@ -288,6 +288,73 @@ instead of calling `f` or consulting the existing cache."
   None)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; * Support for Tversky
+;; https://github.com/Kodiologist/Tversky
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn tversky-format-s [s]
+  (amap (.format "s{:03d}" it) s))
+
+(defn unpack-tversky [db-path &optional
+    [include-incomplete True]
+    exclude-sns]
+  (import sqlite3 [pandas :as pd])
+  (try
+    (do
+      (setv db (sqlite3.connect db-path))
+      (.execute db "pragma foreign_keys = on")
+
+      (setv sb (kwc pd.read-sql-query :con db :index-col "sn"
+        :parse-dates (dict (amap (, it {"unit" "s"}) (qw consented_t began_t completed_t)))
+        "select
+            sn, experimenter, ip, task,
+            consented_t,
+            began_t,
+            case when completed_t = 'assumed' then null else completed_t end
+              as completed_t,
+            MTurk.hitid as hit,
+            MTurk.assignmentid as asgmt,
+            MTurk.workerid as worker
+        from Subjects
+            left join
+                (select sn, min(first_sent) as began_t from Timing group by sn)
+                using (sn)
+            left join MTurk using (sn)"))
+      ; Make some columns categorical, with the levels ordered
+      ; chronologically.
+      (for [c (qw experimenter ip hit task)]
+        (setv (getl sb : c) (kwc pd.Categorical
+          (getl sb : c)
+          :+ordered
+          :categories (list (.unique (getl (.sort sb "began_t") : c))))))
+      (setv ($ sb tv) (+ 1 (. ($ sb task) cat codes)))
+        ; "tv" for "task version".
+      (when exclude-sns
+        (setv sb (.drop sb exclude-sns)))
+      (unless include-incomplete
+        (setv sb (kwc .dropna sb :subset ["completed_t"])))
+
+      (.execute db "create temporary table IncludeSN(sn integer primary key)")
+      (.executemany db "insert into IncludeSN (sn) values (?)" (amap (, it) sb.index))
+
+      (setv dat (.sortlevel (geti (kwc pd.read-sql-query :con db :index-col ["sn" "k"]
+        "select * from D where sn in (select * from IncludeSN)") : 0)))
+
+      (setv timing (.sortlevel (kwc pd.read-sql-query :con db :index-col ["sn" "k"]
+        :parse-dates (dict (amap (, it {"unit" "s"}) (qw first_sent received)))
+        "select * from Timing where sn in (select * from IncludeSN)")))
+
+      (setv sb.index (tversky-format-s sb.index))
+      (for [df [dat timing]]
+        (kwc .set-levels df.index :+inplace :level "sn"
+          (tversky-format-s (first df.index.levels))))
+
+      (, sb dat timing))
+
+    (finally
+      (.close db))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Support for kodhy.macros
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
