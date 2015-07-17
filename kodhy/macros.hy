@@ -105,6 +105,21 @@ The value of the whole expression is that provided by 'ret' or
         ; Otherwise, we can stop here. Return the return value.
         (. ~r value))))))
 
+(defn recur-sym-replace [expr f] (cond
+  [(isinstance expr HySymbol)
+    (f expr)]
+  [(isinstance expr tuple)
+    (tuple (amap (recur-sym-replace it f) expr))]
+  [(and
+      (isinstance expr collections.Iterable)
+      (not (isinstance expr basestring)))
+    (do
+      (for [i (range (len expr))]
+        (setv (get expr i) (recur-sym-replace (get expr i) f)))
+       expr)]
+  [True
+    expr]))
+
 (defmacro λ [&rest body]
   `(lambda [it] ~@body))
 
@@ -115,6 +130,22 @@ The value of the whole expression is that provided by 'ret' or
 "(qw foo bar baz) => ['foo', 'bar', 'baz']
 Caveat: hyphens are transformed to underscores, and *foo* to FOO."
   (HyList (map HyString words)))
+
+(defmacro meth [param-list &rest body]
+  `(fn [self ~@param-list] ~@(recur-sym-replace body (fn [sym]
+    (if (.startswith sym "@")
+      (if (= sym "@")
+        'self
+        `(. self ~@(amap (HySymbol it) (.split (slice sym 1) "."))))
+      sym)))))
+
+(defmacro cmeth [param-list &rest body]
+  `(classmethod (meth ~param-list ~@body)))
+
+(defmacro defcls [name inherit &rest body]
+  `(defclass ~name ~inherit ~(HyList (amap2
+    (HyList [a b])
+    body))))
 
 (defmacro getl [obj key1 &optional key2 key3]
 ; Given a pd.DataFrame 'mtcars':
@@ -155,23 +186,11 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
     [(is-not key2 None) `(, ~(parse-key key1) ~(parse-key key2))]
     [True (parse-key key1)])))
 
-
-(defun dollar-replace [df-sym expr] (cond
-  [(isinstance expr HySymbol)
-    (if (and (.startswith expr "$") (> (len expr) 1))
-      (panda-get 'loc df-sym : (HyString (slice expr 1)))
-      expr)]
-  [(isinstance expr tuple)
-    (tuple (amap (dollar-replace df-sym it) expr))]
-  [(and
-      (isinstance expr collections.Iterable)
-      (not (isinstance expr basestring)))
-    (do
-      (for [i (range (len expr))]
-        (setv (get expr i) (dollar-replace df-sym (get expr i))))
-       expr)]
-  [True
-    expr]))
+(defn dollar-replace [df-sym expr]
+  (recur-sym-replace expr (fn [sym]
+    (if (and (.startswith sym "$") (> (len sym) 1))
+      (panda-get 'loc df-sym : (HyString (slice sym 1)))
+      sym))))
 
 (defmacro wc [df &rest body]
 "With columns.
