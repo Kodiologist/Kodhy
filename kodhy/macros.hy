@@ -28,6 +28,11 @@
       (.append pargs x)))
   `(apply ~function ~(HyList pargs) ~(HyDict kwargs)))
 
+(defn implicit-progn [list-of-forms]
+  (if (= (len list-of-forms) 1)
+    (first list-of-forms)
+    `(do ~@list-of-forms)))
+
 (defmacro lc [vars a1 &optional a2]
 "A more Lispy syntax for list comprehensions.
     (lc [x (range 10)] (str x))
@@ -80,6 +85,24 @@ value bound to 'it'."
   `(let [[it ~expr]]
     (when (is-not it None)
       ~@body)))
+
+(defmacro case [keyform &rest clauses]
+; (case x [:a 1] [:b 2])
+; Implicit progns are provided.
+; Returns None if no keys match.
+  (case-f keyform clauses None))
+
+(defmacro ecase [keyform &rest clauses]
+; Like 'case', but throws LookupError if no case matches.
+  (case-f keyform clauses
+    '[True (raise (LookupError (+ "ecase: No match: " (repr it))))]))
+
+(defn case-f [keyform clauses extra]
+  `(let [[it ~keyform]] (cond
+    ~@(lc [form clauses]
+      `[(= it ~(first form))
+        ~(implicit-progn (slice form 1))])
+    ~@(if extra [extra] []))))
 
 (defmacro replicate [n &rest body]
   `(list (map (lambda [_] ~@body) (range ~n))))
