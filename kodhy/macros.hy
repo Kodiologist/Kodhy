@@ -230,6 +230,13 @@ boolean vector. Return `df` indexed by the boolean vector."
   (setv body (dollar-replace df-sym body))
   `(let [[~df-sym ~df]] (get ~df-sym ~@body)))
 
+(defmacro ssi [df &rest body]
+"Subset index. Like `ss`, but returns a list of the indices that
+matched."
+  (setv df-sym (gensym))
+  (setv body (dollar-replace df-sym body))
+  `(let [[~df-sym ~df]] (.tolist (. (get ~df-sym ~@body) index))))
+
 (defmacro cached [expr &optional [bypass 'None] [cache-dir 'None]]
   `(do
      (import kodhy.util)
