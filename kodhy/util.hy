@@ -21,6 +21,12 @@
   [(> x 0)  1]
   [True     0]))
 
+(defn product [l]
+  (setv a 1)
+  (for [x l]
+    (*= a x))
+  a)
+
 (defn logit [x]
   (import numpy)
   (numpy.log (/ x (- 1 x))))
