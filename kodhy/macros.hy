@@ -155,12 +155,15 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
   (HyList (map HyString words)))
 
 (defmacro meth [param-list &rest body]
-  `(fn [self ~@param-list] ~@(recur-sym-replace body (fn [sym]
-    (if (.startswith sym "@")
+  `(fn [self ~@param-list] ~@(recur-sym-replace body (fn [sym] (cond
+    [(.startswith sym "@")
       (if (= sym "@")
         'self
-        `(. self ~@(amap (HySymbol it) (.split (slice sym 1) "."))))
-      sym)))))
+        `(. self ~@(amap (HySymbol it) (.split (slice sym 1) "."))))]
+    [(.startswith sym "is_@")
+      `(. self ~@(amap (HySymbol it) (.split (+ "is_" (slice sym (len "is_@"))) ".")))]
+    [True
+      sym])))))
 
 (defmacro cmeth [param-list &rest body]
   `(classmethod (meth ~param-list ~@body)))
