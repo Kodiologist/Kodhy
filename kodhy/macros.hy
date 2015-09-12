@@ -48,7 +48,7 @@
 ;  `(list-comp ~expr [it ~args]))  ; The expr doesn't seem to be able to see "it" if it's a (with ...) form.
 
 (defmacro filt [expr args]
-  `(list-comp it [it ~args] ~expr))
+  `(list (filter (lambda [it] ~expr) ~args)))
 
 (defmacro fmap [gen-expr filter-expr args]
   `(list-comp ~gen-expr [it ~args] ~filter-expr))
