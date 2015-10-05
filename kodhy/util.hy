@@ -198,6 +198,19 @@ without newlines outside string literals."
 (defn shift [l]
   (.pop l 0))
 
+(defn mins [iterable &optional [key (λ it)]]
+  ; Returns a list of minimizing values of the iterable,
+  ; in their original order.
+  (setv items (list iterable))
+  (if items
+    (do
+      (setv vals (list (map key items)))
+      (setv vm (min vals))
+      (lc [[item val] (zip items vals)]
+        (<= val vm)
+        item))
+    []))
+
 (defn rget [obj regex]
   (import re)
   (setv regex (re.compile regex))
