@@ -79,7 +79,7 @@ if no matching value is found."
     (catch [_ StopIteration] ~def)))
 
 (defmacro whenn [expr &rest body]
-"Analogus to Haskell's liftM for Maybe. Evaluates
+"Analogous to Haskell's liftM for Maybe. Evaluates
 'expr' and, if its value is not None, evaluates 'body' with the
 value bound to 'it'."
   `(let [[it ~expr]]
