@@ -80,20 +80,33 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (when (and (keyword? (first args)) (= (first args) :I))
     (shift args)
     (setv index (shift args)))
+  (defn scalar? [x]
+    (or (string? x) (not (iterable? x))))
+  (setv height (max (amap
+    (if (scalar? it) 1 (len it))
+    args)))
   (setv chunks [])
   (while args
     (setv x (shift args))
-    (if (keyword? x) (do
-      (setv chunk (shift args))
-      (setv chunk (if (instance? pd.Series chunk)
-        (.copy chunk)
-        (pd.Series chunk)))
-      (setv (. chunk name) (keyword->str x))
-      (.append chunks chunk))
-    ; else
-      (.append chunks (if (instance? pd.DataFrame x)
-        x
-        (pd.Series x)))))
+    (if (keyword? x)
+      (do
+        (setv chunk (shift args))
+        (setv chunk (cond
+          [(instance? pd.Series chunk)
+            (.copy chunk)]
+          [(scalar? chunk)
+            (pd.Series (* [chunk] height))]
+          [True
+            (pd.Series chunk)]))
+        (setv chunk.name (keyword->str x))
+        (.append chunks chunk))
+      (.append chunks (cond
+          [(instance? pd.DataFrame x)
+            x]
+          [(scalar? x)
+            (pd.Series (* [x] height))]
+          [True
+            (pd.Series x)]))))
   (setv result (kwc pd.concat :objs chunks :axis 1 :join join))
   (unless (none? index)
     (setv (. result index) index))
