@@ -211,6 +211,10 @@ without newlines outside string literals."
 (defn shift [l]
   (.pop l 0))
 
+(defn unique [l]
+  (setv seen (set))
+  (filt (when (not-in it seen) (.add seen it) True) l))
+
 (defn mins [iterable &optional [key (λ it)]]
   ; Returns a list of minimizing values of the iterable,
   ; in their original order.
