@@ -247,6 +247,11 @@ without newlines outside string literals."
     (.append r (, (keyword->str (shift a)) (keyword->str (shift a)))))
   r)
 
+(defn by-ns [n iterable]
+  (apply zip (* [(iter iterable)] n)))
+(defn by-2s [iterable]
+  (by-ns 2 iterable))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Higher-order functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
