@@ -378,7 +378,7 @@ instead of calling `f` or consulting the existing cache."
         (setv (getl sb : c) (kwc pd.Categorical
           (getl sb : c)
           :+ordered
-          :categories (list (.unique (getl (.sort sb "began_t") : c))))))
+          :categories (list (.unique (.dropna (getl (.sort-values sb "began_t") : c)))))))
       (setv ($ sb tv) (+ 1 (. ($ sb task) cat codes)))
         ; "tv" for "task version".
       (when exclude-sns
