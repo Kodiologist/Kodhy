@@ -66,6 +66,13 @@
           ~expr))
       (range 0 (len ~g!args) 2)))))
 
+(defmacro/g! map-dvals [expr d]
+  `(dict (map
+    (lambda [~g!pair]
+      (setv it (get ~g!pair 1))
+      (, (get ~g!pair 0) ~expr))
+    (.items ~d))))
+
 (defmacro afind [expr args]
   `(try
     (next (filter (lambda [it] ~expr) ~args))
