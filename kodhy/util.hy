@@ -55,6 +55,8 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 
 (defn valcounts [x]
   (import [pandas :as pd])
+  (unless (instance? pd.Series x)
+    (setv x (pd.Series (list x))))
   (.rename (kwc .value-counts x :!sort :!dropna)
     (λ (if (pd.isnull it) "N/A" it))))
 
