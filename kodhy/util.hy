@@ -207,6 +207,12 @@ without newlines outside string literals."
 (defn concat [ll]
   (reduce (fn [accum x] (+ accum x)) ll []))
 
+(defn merge-dicts [&rest ds]
+  (setv out {})
+  (for [d ds]
+    (.update out d))
+  out)
+
 (defn seq [lo hi &optional [step 1]]
   (list (range lo (+ hi 1) step)))
 
