@@ -468,11 +468,13 @@ like a histogram. Missing values are silently ignored."
   ; Vaculously plot the points so the axes are scaled
   ; appropriately and interactive mode is respected.
   (kwc plt.scatter x y)
-  ; Now add the visible circles.
+  ; Now add the visible markers.
   (unless (in "color" kwargs)
     (setv (get kwargs "color") "black"))
   (setv collection (apply PatchCollection
-    [(lc [[x0 y0] (zip x y)] (plt.Circle (, x0 y0) (/ diam 2)))]
+    (if (.pop kwargs "rect" False)
+      [(lc [[x0 y0] (zip x y)] (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))]
+      [(lc [[x0 y0] (zip x y)] (plt.Circle (, x0 y0) (/ diam 2)))])
     kwargs))
   (.add-collection ax collection)
 
@@ -480,3 +482,8 @@ like a histogram. Missing values are silently ignored."
   (kwc .set-ylim ax :bottom 0)
 
   collection)
+
+(defn rectplot [xs &optional [diam 1] ax &kwargs kwargs]
+"`dotplot` using rectangles instead of circles."
+  (setv (get kwargs "rect") True)
+  (apply dotplot [xs diam ax] kwargs))
