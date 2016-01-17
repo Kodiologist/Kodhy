@@ -312,15 +312,19 @@ instead of calling `f` or consulting the existing cache."
     0 -2))
   (setv path (os.path.join cache-dir basename))
   (setv value bypass)
+  (setv write-value True)
   (when (none? value)
     (try
-      (with [[o (open path "rb")]]
-        (setv value (get (cPickle.load o) "value")))
+      (do
+        (with [[o (open path "rb")]]
+          (setv value (get (cPickle.load o) "value")))
+        (setv write-value False))
       (catch [e IOError]
         (unless (= e.errno errno.ENOENT)
           (throw)))))
   (when (none? value)
-    (setv value (f))
+    (setv value (f)))
+  (when write-value
     (setv d {
       "basename" basename
       "key" key
