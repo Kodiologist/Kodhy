@@ -308,7 +308,7 @@ instead of calling `f` or consulting the existing cache."
 ;  (unless (os.path.exists cache-dir)
 ;    (os.makedirs cache-dir))
   (setv basename (slice
-    (base64.b64encode (.digest (hashlib.md5 key)) (str "+-"))
+    (base64.b64encode (.digest (hashlib.md5 key)) (str "+_"))
     0 -2))
   (setv path (os.path.join cache-dir basename))
   (setv value bypass)
