@@ -261,22 +261,6 @@ without newlines outside string literals."
   (by-ns 2 iterable))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; * Higher-order functions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn kfold-cv-pred [x y f &optional [n-folds 10] [shuffle True]]
-"Return a np of predictions of y given x using f.
-
-f will generally be of the form (fn [x-train y-train x-test] ...),
-and should return a 1D nparray of predictions given x-test."
-  (import [numpy :as np] [sklearn.cross-validation :as skcv])
-  (setv y-pred (np.empty-like y))
-  (for [[train-i test-i] (kwc skcv.KFold (len y) :n-folds n-folds :shuffle shuffle)]
-    (setv (get y-pred test-i)
-      (f (get x train-i) (get y train-i) (get x test-i))))
-  y-pred)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -291,6 +275,103 @@ and should return a 1D nparray of predictions given x-test."
       (open name mode)
       (open name mode buffering))]]
     (o.write content)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; * Cross-validation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn kfold-cv-pred [x y f &optional [n-folds 10] [shuffle True]]
+"Return a np of predictions of y given x using f.
+
+f will generally be of the form (fn [x-train y-train x-test] ...),
+and should return a 1D nparray of predictions given x-test."
+  (import [numpy :as np] [sklearn.cross-validation :as skcv])
+  (setv y-pred (np.empty-like y))
+  (for [[train-i test-i] (kwc skcv.KFold (len y) :n-folds n-folds :shuffle shuffle)]
+    (setv (get y-pred test-i)
+      (f (get x train-i) (get y train-i) (get x test-i))))
+  y-pred)
+
+(defn choose-labeled-cv-folds [subjects labels bin-label-possibilities]
+; Put the subjects into cross-validation folds such that all the
+; subjects with a given label are in the same fold.
+; bin-label-possibilities should be the return value of
+; bin-labels.
+  (import [random [choice shuffle]] [collections [Counter]])
+  (setv group-sizes (Counter labels))
+  (setv bins (list (choice bin-label-possibilities)))
+  (shuffle bins)
+  (amap
+    (concat (amap
+      (do
+        (setv target-size it)
+        (setv label (first (afind (= (second it) target-size) (.items group-sizes))))
+        (del (get group-sizes label))
+        (lc [[s l] (zip subjects labels)] (= l label) s))
+      it))
+    bins))
+
+(defn bin-labels [labels &optional [n-bins 10] max-bin-size]
+; A routine to prepare input for choose-labeled-cv-folds.
+;
+; Finds ways to sort a list of label objects (which is
+; expected to have lots of duplicates) into a fixed number
+; bins in a way that gets the bin sizes as close to equal
+; as possible. This is just the multiprocessor-scheduling problem
+; ( https://en.wikipedia.org/wiki/Multiprocessor_scheduling )
+; with a different metric to optimize.
+;
+; The algorithm simply enumerates all possibilities, so it will
+; will be too slow with large inputs.
+;
+; Returns a tuple of possibilities, each of which is a tuple of
+; bins. Each bin is a tuple of numbers representing the size
+; of a labelled group.
+
+  (import [collections [Counter]])
+
+  (setv initial-state (,
+    (tuple (sorted (.values (Counter labels))))
+    (* (, (,)) n-bins)))
+
+  (setv states (set [initial-state]))
+  (setv explore [initial-state])
+  (setv iteration 0)
+  (setv explore-len-was (len explore))
+
+  (print "Generating possible arrangements")
+  (while explore
+    (+= iteration 1)
+    (unless (% iteration 10000)
+      (print (len explore) (.format "({:+d})" (- (len explore) explore-len-was)))
+      (setv explore-len-was (len explore)))
+    (setv [remaining bins] (.pop explore 0))
+    (setv rseen (set))
+    (for [r-i (range (len remaining))]
+      (setv x (get remaining r-i))
+      (when (in x rseen)
+        (continue))
+      (.add rseen x)
+      (setv new-remaining (+ (slice remaining 0 r-i) (slice remaining (+ r-i 1))))
+      (for [b-i (range n-bins)]
+        (setv new-bin (+ (get bins b-i) (, x)))
+        (when (and max-bin-size (> (sum new-bin) max-bin-size))
+          (continue))
+        (setv new-bins (tuple (sorted (+
+          (slice bins 0 b-i)
+          (, (tuple (sorted new-bin)))
+          (slice bins (+ b-i 1))))))
+        (setv new-state (, new-remaining new-bins))
+        (when (in new-state states)
+          (continue))
+        (.add states new-state)
+        (.append explore new-state))))
+
+  (print "Finding minima")
+  (setv target-bin-size (/ (len labels) n-bins))
+  (mins
+    (lc [[remaining bins] states] (and (not remaining) (all bins)) bins)
+    (λ (sum (amap (** (- (sum it) target-bin-size) 2) it)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Caching
