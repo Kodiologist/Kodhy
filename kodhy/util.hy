@@ -223,6 +223,9 @@ without newlines outside string literals."
   (setv seen (set))
   (filt (when (not-in it seen) (.add seen it) True) l))
 
+(defn all-unique? [l]
+  (= (len l) (len (set l))))
+
 (defn mins [iterable &optional [key (λ it)]]
   ; Returns a list of minimizing values of the iterable,
   ; in their original order.
