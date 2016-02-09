@@ -267,16 +267,25 @@ without newlines outside string literals."
 ;; * Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn slurp [name &optional mode buffering]
-  (with [[o (apply open [name] (dict (+
+(defn slurp [name &optional mode encoding buffering]
+  (setv f open)
+  (when encoding
+    (import codecs)
+    (setv f codecs.open))
+  (with [[o (apply f [name] (dict (+
       (if (none? mode)      [] [(, "mode" mode)])
+      (if (none? encoding)  [] [(, "encoding" encoding)])
       (if (none? buffering) [] [(, "buffering" buffering)]))))]]
     (o.read)))
 
-(defn barf [name content &optional [mode "w"] buffering]
-  (with [[o (if (none? buffering)
-      (open name mode)
-      (open name mode buffering))]]
+(defn barf [name content &optional [mode "w"] encoding buffering]
+  (setv f open)
+  (when encoding
+    (import codecs)
+    (setv f codecs.open))
+  (with [[o (apply f [name mode] (dict (+
+      (if (none? encoding)  [] [(, "encoding" encoding)])
+      (if (none? buffering) [] [(, "buffering" buffering)]))))]]
     (o.write content)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
