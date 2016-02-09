@@ -42,6 +42,16 @@
     ~vars
     ~@(if a2 [a1] [])))
 
+(defmacro/g! rmap [arglist &rest expr]
+; (rmap [[i x] (enumerate "xyzzy")] (setv y (.upper x)) (+ (string i) y))
+;   => ["0X" "1Y" "2Z" "3Z" "4Y"]
+  (setv [lvalue args] arglist)
+  `(list (map
+    (lambda [~g!arg]
+      (setv ~lvalue ~g!arg)
+      ~@expr)
+    ~args)))
+
 (defmacro amap [expr args]
 "'a' stands for 'anaphoric'."
   `(list (map (lambda [it] ~expr) ~args)))
