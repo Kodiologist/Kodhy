@@ -152,6 +152,15 @@ for each first-order interaction. Constant columns are removed."
     (lc [[v1 v2] (combinations (range (second m.shape)) 2)]
       (* (geta m : v1) (geta m : v2)))))))
 
+(defn print-big-pd [obj]
+  (import [pandas :as pd])
+  (with [[(pd.option-context
+      "display.max_rows" (int 5000)
+      "display.max_columns" (int 100)
+      "display.width" (int 1000)
+      "display.max_colwidth" (int 500))]]
+    (print obj)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Strings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
