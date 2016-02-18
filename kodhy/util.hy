@@ -235,18 +235,25 @@ without newlines outside string literals."
 (defn all-unique? [l]
   (= (len l) (len (set l))))
 
-(defn mins [iterable &optional [key (λ it)]]
+(defn mins [iterable &optional [key (λ it)] comparator-fn [agg-fn min]]
   ; Returns a list of minimizing values of the iterable,
   ; in their original order.
+  (unless comparator-fn
+    (import operator)
+    (setv comparator-fn operator.le))
   (setv items (list iterable))
   (if items
     (do
       (setv vals (list (map key items)))
-      (setv vm (min vals))
+      (setv vm (agg-fn vals))
       (lc [[item val] (zip items vals)]
-        (<= val vm)
+        (comparator-fn val vm)
         item))
     []))
+
+(defn maxes [iterable &optional [key (λ it)]]
+  (import operator)
+  (mins iterable key operator.ge max))
 
 (defn rget [obj regex]
   (import re)
