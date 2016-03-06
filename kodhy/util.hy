@@ -143,14 +143,22 @@ or both a number of digits to round to and such an object."
    [True
      x]))
 
-(defn with-1o-interacts [m]
+(defn with-1o-interacts [m &optional column-names]
 "Given a data matrix m, return a matrix with a new column
 for each first-order interaction. Constant columns are removed."
   (import [numpy :as np] [itertools [combinations]])
-  (np.column-stack (+ [m]
-    (filt (not (.all (= it (first it))))
-    (lc [[v1 v2] (combinations (range (second m.shape)) 2)]
+  (when column-names
+    (assert (= (len column-names) (second m.shape))))
+  (setv [new-names new-cols] (apply zip (filt
+    (not (.all (= (second it) (first (second it)))))
+    (lc [[v1 v2] (combinations (range (second m.shape)) 2)] (,
+      (when column-names
+        (tuple (sorted [(get column-names v1) (get column-names v2)])))
       (* (geta m : v1) (geta m : v2)))))))
+  (setv new-m (np.column-stack (+ (, m) new-cols)))
+  (if column-names
+    (, new-m (+ (tuple column-names) new-names))
+    new-m))
 
 (defn print-big-pd [obj]
   (import [pandas :as pd])
