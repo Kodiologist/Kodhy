@@ -146,6 +146,7 @@ The value of the whole expression is that provided by 'ret' or
         (. ~r value))))))
 
 (defn recur-sym-replace [expr f] (cond
+  ; Recursive symbol replacement.
   [(isinstance expr HySymbol)
     (f expr)]
   [(isinstance expr tuple)
@@ -256,6 +257,18 @@ matched."
   (setv df-sym (gensym))
   (setv body (dollar-replace df-sym body))
   `(let [[~df-sym ~df]] (.tolist (. (get ~df-sym ~@body) index))))
+
+(defmacro ordf [df &rest exprs]
+"Order data frame. (ordf d (.abs $baz) $bar) sorts first by the
+absolute value of the column `baz`, then by `bar`."
+  (setv [df-sym pd sorting-df] [(gensym) (gensym) (gensym)])
+  (setv exprs (dollar-replace df-sym exprs))
+  `(do
+    (setv ~df-sym ~df)
+    (import [pandas :as ~pd])
+    (setv ~sorting-df (.reset-index (.concat ~pd [~@exprs] 1) None True))
+    (geti ~df-sym (. (.sort-values ~sorting-df (list (. ~sorting-df columns))) index))))
+; ~pd
 
 (defmacro cached [expr &optional [bypass 'None] [cache-dir 'None]]
   `(do
