@@ -2,6 +2,17 @@
   collections
   [hy [HyList HyDict HyString HySymbol HyExpression]])
 
+(defn mangle [p]
+  ; Mangles a symbol name.
+  ; Copied from Hy's parser.py (and translated to Hy).
+  (when (and (.startswith p "*") (.endswith p "*") (not-in p ["*" "**"]))
+    (setv p (.upper (slice p 1 -1))))
+  (unless (= p "-")
+    (setv p (.replace p "-" "_")))
+  (when (and (.endswith p "?") (!= p "?"))
+    (setv p (.format "is_{}" (slice p None -1))))
+  p)
+
 (defmacro kwc [f &rest a]
 "Keyword call.
     (kwc f 1 :a 3 2 :b 4)  =>  f(1, 2, a = 3, b = 4)
@@ -9,21 +20,21 @@
     (kwc f 1 :!a)          =>  f(1, a = False)"
   (kwc-f f a))
 
-(defun kwc-f [function input-args]
+(defn kwc-f [function input-args]
   (setv input-args (list input-args))
   (setv pargs [])
   (setv kwargs [])
   (while input-args
     (setv x (.pop input-args 0))
     (if (keyword? x) (do
-      (setv x (.replace (slice x 2) "-" "_"))
+      (setv name (slice x 2))
       (.extend kwargs (cond
-        [(.startswith x "+")
-          [(HyString (slice x 1)) 'True]]
-        [(.startswith x "!")
-          [(HyString (slice x 1)) 'False]]
+        [(.startswith name "+")
+          [(HyString (mangle (slice name 1))) 'True]]
+        [(.startswith name "!")
+          [(HyString (mangle (slice name 1))) 'False]]
         [True
-          [(HyString x) (.pop input-args 0)]])))
+          [(HyString (mangle name)) (.pop input-args 0)]])))
     ; else
       (.append pargs x)))
   `(apply ~function ~(HyList pargs) ~(HyDict kwargs)))
