@@ -117,6 +117,17 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 (defn cbind [&rest args]
   (apply cbind-join (+ (, "outer") args)))
 
+(defn drop-unused-cats [d &optional [inplace False]]
+  ; Drops unused categories from all categorical columns.
+  ; Can also be applied to a Series.
+  (import [pandas :as pd])
+  (unless inplace
+    (setv d (.copy d)))
+  (for [[_ col] (if (instance? pd.Series d) [[None d]] (.iteritems d))]
+    (when (hasattr col "cat")
+      (kwc .remove-unused-categories col.cat :+inplace)))
+  d)
+
 (defn rd [a1 &optional a2]
 "Round for display. Takes just a number, array, Series, or DataFrame,
 or both a number of digits to round to and such an object."
