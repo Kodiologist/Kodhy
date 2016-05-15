@@ -71,6 +71,10 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (break)))
   x)
 
+(defn pds-from-pairs [l &kwargs kwargs]
+  (import [pandas :as pd])
+  (apply pd.Series [(amap (second it) l) (amap (first it) l)] kwargs))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Matrices and DataFrames
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -116,6 +120,12 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 
 (defn cbind [&rest args]
   (apply cbind-join (+ (, "outer") args)))
+
+(defn df-from-pairs [l]
+  (import [pandas :as pd])
+  (setv d (pd.DataFrame (amap (dict it) l)))
+  (setv d.columns (amap (first it) (first l)))
+  d)
 
 (defn drop-unused-cats [d &optional [inplace False]]
   ; Drops unused categories from all categorical columns.
