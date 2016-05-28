@@ -123,7 +123,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 
 (defn df-from-pairs [l]
   (import [pandas :as pd])
-  (setv d (pd.DataFrame (amap (dict it) l)))
+  (setv d (pd.DataFrame (lc [row l] (lc [[_ v] row] v))))
   (setv d.columns (amap (first it) (first l)))
   d)
 
