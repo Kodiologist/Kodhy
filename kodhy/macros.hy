@@ -94,6 +94,14 @@
       (, (get ~g!pair 0) ~expr))
     (.items ~d))))
 
+(defmacro/g! count [expr args]
+  `(do
+    (setv ~g!n (int 0))
+    (for [it ~args]
+      (when ~expr
+        (+= ~g!n (int 1))))
+    ~g!n))
+
 (defmacro afind [expr args]
   `(try
     (next (filter (lambda [it] ~expr) ~args))
