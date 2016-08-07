@@ -349,14 +349,18 @@ without newlines outside string literals."
 ;; * Cross-validation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn kfold-cv-pred [x y f &optional [n-folds 10] [shuffle True]]
-"Return a np of predictions of y given x using f.
+(defn kfold-cv-pred [x y f &optional [n-folds 10] [shuffle True] folds]
+"Return a np of predictions of y given x using f. x is expected to be
+a numpy matrix, not a pandas DataFrame.
 
 f will generally be of the form (fn [x-train y-train x-test] ...),
 and should return a 1D nparray of predictions given x-test."
-  (import [numpy :as np] [sklearn.cross-validation :as skcv])
+  (import [numpy :as np])
   (setv y-pred (np.empty-like y))
-  (for [[train-i test-i] (kwc skcv.KFold (len y) :n-folds n-folds :shuffle shuffle)]
+  (unless folds
+    (import [sklearn.cross-validation :as skcv])
+    (setv folds (kwc skcv.KFold (len y) :n-folds n-folds :shuffle shuffle)))
+  (for [[train-i test-i] folds]
     (setv (get y-pred test-i)
       (f (get x train-i) (get y train-i) (get x test-i))))
   y-pred)
