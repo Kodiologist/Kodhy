@@ -252,7 +252,7 @@ without newlines outside string literals."
   out)
 
 (defn seq [lo hi &optional [step 1]]
-  (list (range lo (+ hi 1) step)))
+  (list (range lo (+ hi step) step)))
 
 (defn shift [l]
   (.pop l 0))
