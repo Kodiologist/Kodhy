@@ -27,6 +27,9 @@
     (*= a x))
   a)
 
+(defn odds-ratio [p1 p2]
+  (/ (* p1 (- 1 p2)) (* p2 (- 1 p1))))
+
 (defn logit [x]
   (import numpy)
   (numpy.log (/ x (- 1 x))))
