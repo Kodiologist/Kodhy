@@ -457,13 +457,15 @@ and should return a 1D nparray of predictions given x-test."
   (import os.path)
   (os.path.join (os.path.expanduser "~") ".daylight" "py-cache")))
 
-(defn cached-eval [key f &optional bypass [cache-dir _default-cache-dir]]
+(defn cached-eval [key f &optional bypass cache-dir]
 "Call `f`, caching the value with the string `key`. If `bypass`
 is provided, its value is written to the cache and returned
 instead of calling `f` or consulting the existing cache."
   (import cPickle hashlib base64 os os.path errno time)
 ;  (unless (os.path.exists cache-dir)
 ;    (os.makedirs cache-dir))
+  (unless cache-dir
+    (setv cache-dir _default-cache-dir))
   (setv basename (slice
     (base64.b64encode (.digest (hashlib.md5 key)) (str "+_"))
     0 -2))
