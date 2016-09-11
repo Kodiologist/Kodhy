@@ -349,6 +349,43 @@ without newlines outside string literals."
     (o.write content)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; * JSON
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn json-dumps-pretty [o &kwargs kwargs]
+  ; Like json.dumps, but arrays or objects of atomic values are
+  ; printed without internal indents, and with different
+  ; option defaults.
+  (import json uuid)
+  (for [[option value] (pairs
+      :indent 2 :separators (, "," ": ") :sort_keys True)]
+    (when (none? (.get kwargs option))
+      (setv (get kwargs option) value)))
+  (setv substituted-parts {})
+  (defn recursive-subst [x]
+    ; Replaces lists or dictionaries of atomic values with UUID
+    ; strings.
+    (if (isinstance x (, list tuple dict))
+      (if (all (lc [v (if (isinstance x dict) (.values x) x)]
+            (isinstance v (, bool (type None) int long float str unicode))))
+        (do
+          (setv my-id (. (uuid.uuid4) hex))
+          (setv (get substituted-parts my-id) x)
+          my-id)
+        (if (isinstance x dict)
+          (dict (lc [[k v] (.items x)] (, k (recursive-subst v))))
+          (lc [v x] (recursive-subst v))))
+      x))
+  (setv json-str (apply json.dumps [(recursive-subst o)] kwargs))
+  (setv (get kwargs "indent") None)
+  (setv (get kwargs "separators") (, ", " ": "))
+  (for [[my-id x] (.items substituted-parts)]
+    (setv json-str (.replace json-str (+ "\"" my-id "\"")
+      (.rstrip (apply json.dumps [x] kwargs))
+      1)))
+  json-str)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Cross-validation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
