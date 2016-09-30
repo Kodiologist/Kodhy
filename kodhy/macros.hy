@@ -251,14 +251,17 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
 
 (defn dollar-replace [df-sym expr]
   (recur-sym-replace expr (fn [sym]
-    (if (and (.startswith sym "$") (> (len sym) 1))
-      (panda-get 'loc df-sym : (HyString (slice sym 1)))
+    (if (.startswith sym "$")
+      (if (= (len sym) 1)
+        df-sym
+        (panda-get 'loc df-sym : (HyString (slice sym 1))))
       sym))))
 
 (defmacro wc [df &rest body]
 "With columns.
     (wc df (+ $a $b))  =>  (+ ($ df a) ($ df b))
-The replacement is recursive."
+The replacement is recursive.
+`$` on its own becomes simply `df`."
   (setv df-sym (gensym))
   (setv body (dollar-replace df-sym body))
   `(let [[~df-sym ~df]] ~@body))
