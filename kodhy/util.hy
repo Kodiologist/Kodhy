@@ -470,13 +470,15 @@ a numpy matrix, not a pandas DataFrame.
 f will generally be of the form (fn [x-train y-train x-test] ...),
 and should return a 1D nparray of predictions given x-test."
   (import [numpy :as np])
-  (setv y-pred (np.empty-like y))
+  (setv y-pred None)
   (unless folds
     (import [sklearn.cross-validation :as skcv])
     (setv folds (kwc skcv.KFold (len y) :n-folds n-folds :shuffle shuffle)))
   (for [[train-i test-i] folds]
-    (setv (get y-pred test-i)
-      (f (get x train-i) (get y train-i) (get x test-i))))
+    (setv result (f (get x train-i) (get y train-i) (get x test-i)))
+    (when (none? y-pred)
+      (setv y-pred (kwc np.empty-like y :dtype result.dtype)))
+    (setv (get y-pred test-i) result))
   y-pred)
 
 (defn choose-labeled-cv-folds [subjects labels bin-label-possibilities]
