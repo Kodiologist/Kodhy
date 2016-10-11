@@ -197,6 +197,76 @@ for each first-order interaction. Constant columns are removed."
       "display.max_colwidth" (int 500))]]
     (print obj)))
 
+(defn pd-to-pretty-json [path df]
+  ; Serializes a Pandas dataframe to an obvious-looking JSON format.
+  ; Information about categorial columns is saved as metadata.
+  (import [numpy :as np] [collections [OrderedDict]])
+  (setv out {})
+
+  (setv (get out "categories") (OrderedDict (rmap [col (ssi df.dtypes (= $ "category"))]
+    [col {
+      "ordered" (. (getl df : col) cat ordered)
+      "categories" (list (. (getl df : col) cat categories))}])))
+
+  (setv cols (list df.columns))
+  (setv (get out "table") (.astype df.values object))
+  (setv (get out "first_col_is_row_labels") False)
+  (when (or df.index.name
+      (not (.all (= df.index (list (range (len df)))))))
+    ; We only include the index as a column if it has a name or
+    ; is something other than consecutive integers starting from
+    ; 0.
+    (setv (get out "first_col_is_row_labels") True)
+    (setv (get out "table") (np.column-stack [df.index (get out "table")]))
+    (setv cols (+ [df.index.name] cols)))
+  (setv (get out "table") (+ [cols] (.tolist (get out "table"))))
+
+  (if (none? path)
+    (json-dumps-pretty out)
+    (barf path (json-dumps-pretty out))))
+
+(defn pretty-json-to-pd [path]
+  (import json [pandas :as pd])
+  (setv j (json.loads (slurp path)))
+  (setv df (kwc pd.DataFrame (slice (get j "table") 1)
+    :columns (get j "table" 0)))
+  (when (get j "first_col_is_row_labels")
+    (setv df (.set-index df (first df.columns))))
+  (for [[catcol meta] (.items (.get j "categories" {}))]
+    (setv (getl df : catcol)
+      (apply .astype [(getl df : catcol) "category"] meta)))
+   df)
+
+;(defn pd-to-pretty-json [path df]
+;  ; Serializes a Pandas dataframe to an obvious-looking JSON format.
+;  ; Categorical columns are converted to codes, but the original
+;  ; categories are provided as metadata.
+;  (import [numpy :as np])
+;  (setv df (.copy df))
+;  (setv out {})
+;
+;  (setv catcols (ssi df.dtypes (= $ "category")))
+;  (setv (get out "categories") (dict (rmap [col catcols]
+;    [col [(if (. (getl df : col) cat ordered) "ordered" "unordered")
+;      (list (. (getl df : col) cat categories))]])))
+;  (for [col catcols]
+;    (setv (getl df : col) (. (getl df : col) cat codes)))
+;
+;  (setv cols (list df.columns))
+;  (setv (get out "table") (.astype df.values object))
+;  (when (or df.index.name
+;      (not (.all (= df.index (list (range (len df)))))))
+;    ; We only include the index as a column if it has a name or
+;    ; is something other than consecutive integers starting from
+;    ; 0.
+;    (setv (get out "table") (np.column-stack [df.index (get out "table")]))
+;    (setv cols (+ [(or df.index.name "I")] cols)))
+;  (setv (get out "table") (+ [cols] (.tolist (get out "table"))))
+;
+;  (if path
+;    (barf path (json-dumps-pretty out))
+;    (json-dumps-pretty out)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Strings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
