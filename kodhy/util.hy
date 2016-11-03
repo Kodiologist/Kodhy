@@ -61,7 +61,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (unless (instance? pd.Series x)
     (setv x (pd.Series (list x))))
   (.rename (kwc .value-counts x :!sort :!dropna)
-    (λ (if (pd.isnull it) "N/A" it))))
+    (λ (if (pd.isnull it) (str "N/A") it))))
 
 (defn weighted-choice [l]
 ; The argument should be a list of (weight, object) pairs.
