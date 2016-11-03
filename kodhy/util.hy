@@ -56,12 +56,17 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (import [numpy :as np])
   (np.mean (np.abs (- v1 v2))))
 
-(defn valcounts [x]
-  (import [pandas :as pd])
-  (unless (instance? pd.Series x)
-    (setv x (pd.Series (list x))))
-  (.rename (kwc .value-counts x :!sort :!dropna)
-    (λ (if (pd.isnull it) (str "N/A") it))))
+(defn valcounts [x &optional y]
+  (import [pandas :as pd] [numpy :as np])
+  (setv [x y] (rmap [v [x y]]
+    (if (or (none? v) (instance? pd.Series v))
+      v
+      (pd.Series (list v)))))
+  (if (none? y)
+    (.rename (kwc .value-counts x :!sort :!dropna)
+      (λ (if (pd.isnull it) (str "N/A") it)))
+    (pd.crosstab
+      (.replace x np.nan "~N/A") (.replace y np.nan "~N/A"))))
 
 (defn weighted-choice [l]
 ; The argument should be a list of (weight, object) pairs.
