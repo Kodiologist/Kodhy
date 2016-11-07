@@ -186,11 +186,11 @@ for each first-order interaction. Constant columns are removed."
 
 (defn print-big-pd [obj]
   (import [pandas :as pd])
-  (with [[(pd.option-context
+  (with [(pd.option-context
       "display.max_rows" (int 5000)
       "display.max_columns" (int 100)
       "display.width" (int 1000)
-      "display.max_colwidth" (int 500))]]
+      "display.max_colwidth" (int 500))]
     (print obj)))
 
 (defn pd-to-pretty-json [path df]
@@ -402,10 +402,10 @@ without newlines outside string literals."
   (when encoding
     (import codecs)
     (setv f codecs.open))
-  (with [[o (apply f [name] (dict (+
+  (with [o (apply f [name] (dict (+
       (if (none? mode)      [] [(, "mode" mode)])
       (if (none? encoding)  [] [(, "encoding" encoding)])
-      (if (none? buffering) [] [(, "buffering" buffering)]))))]]
+      (if (none? buffering) [] [(, "buffering" buffering)]))))]
     (o.read)))
 
 (defn barf [name content &optional [mode "w"] encoding buffering]
@@ -413,9 +413,9 @@ without newlines outside string literals."
   (when encoding
     (import codecs)
     (setv f codecs.open))
-  (with [[o (apply f [name mode] (dict (+
+  (with [o (apply f [name mode] (dict (+
       (if (none? encoding)  [] [(, "encoding" encoding)])
-      (if (none? buffering) [] [(, "buffering" buffering)]))))]]
+      (if (none? buffering) [] [(, "buffering" buffering)]))))]
     (o.write content)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -587,7 +587,7 @@ instead of calling `f` or consulting the existing cache."
   (when (none? value)
     (try
       (do
-        (with [[o (open path "rb")]]
+        (with [o (open path "rb")]
           (setv value (get (cPickle.load o) "value")))
         (setv write-value F))
       (except [e IOError]
@@ -601,7 +601,7 @@ instead of calling `f` or consulting the existing cache."
       "key" key
       "value" value
       "time" (time.time)})
-    (with [[o (open path "wb")]]
+    (with [o (open path "wb")]
       (cPickle.dump d o cPickle.HIGHEST-PROTOCOL)))
   value)
 
@@ -610,7 +610,7 @@ instead of calling `f` or consulting the existing cache."
   (import cPickle os os.path datetime)
   (setv items
     (sorted :key (λ (get it "time"))
-    (amap (with [[o (open (os.path.join cache-dir it) "rb")]]
+    (amap (with [o (open (os.path.join cache-dir it) "rb")]
       (cPickle.load o))
     (os.listdir cache-dir))))
   (for [item items]
