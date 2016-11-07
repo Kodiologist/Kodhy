@@ -140,17 +140,14 @@ The value of the whole expression is that provided by 'ret' or
 
 (defn recur-sym-replace [expr f] (cond
   ; Recursive symbol replacement.
-  [(isinstance expr HySymbol)
+  [(instance? HySymbol expr)
     (f expr)]
-  [(isinstance expr tuple)
+  [(instance? tuple expr)
     (tuple (amap (recur-sym-replace it f) expr))]
-  [(and
-      (isinstance expr collections.Iterable)
-      (not (isinstance expr basestring)))
-    (do
-      (for [i (range (len expr))]
-        (setv (get expr i) (recur-sym-replace (get expr i) f)))
-       expr)]
+  [(coll? expr)
+    (for [i (range (len expr))]
+      (setv (get expr i) (recur-sym-replace (get expr i) f)))
+     expr]
   [True
     expr]))
 
