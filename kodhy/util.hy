@@ -1,4 +1,4 @@
-(require kodhy.macros)
+(require [kodhy.macros [*]])
 
 (setv T True)
 (setv F False)
@@ -6,18 +6,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Numbers and arrays
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn xor [&rest args] (block
-  (setv v F)
-  (for [x args]
-    (if x
-      (do
-        (when v
-          (ret F))
-        (setv v x))
-      (unless v
-        (setv v x))))
-  v))
 
 (defn signum [x] (cond
   [(< x 0) -1]
