@@ -6,11 +6,11 @@
   ; Mangles a symbol name.
   ; Copied from Hy's parser.py (and translated to Hy).
   (when (and (.startswith p "*") (.endswith p "*") (not-in p ["*" "**"]))
-    (setv p (.upper (slice p 1 -1))))
+    (setv p (.upper (cut p 1 -1))))
   (unless (= p "-")
     (setv p (.replace p "-" "_")))
   (when (and (.endswith p "?") (!= p "?"))
-    (setv p (.format "is_{}" (slice p None -1))))
+    (setv p (.format "is_{}" (cut p None -1))))
   p)
 
 (defn implicit-progn [list-of-forms]
@@ -114,7 +114,7 @@ value bound to 'it'."
     (cond
       ~@(lc [form clauses]
         `[(= it ~(first form))
-          ~@(slice form 1)])
+          ~@(cut form 1)])
       ~@(if extra [extra] []))))
 
 (defmacro replicate [n &rest body]
@@ -170,9 +170,9 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
     [(.startswith sym "@")
       (if (= sym "@")
         'self
-        `(. self ~@(amap (HySymbol it) (.split (slice sym 1) "."))))]
+        `(. self ~@(amap (HySymbol it) (.split (cut sym 1) "."))))]
     [(.startswith sym "is_@")
-      `(. self ~@(amap (HySymbol it) (.split (+ "is_" (slice sym (len "is_@"))) ".")))]
+      `(. self ~@(amap (HySymbol it) (.split (+ "is_" (cut sym (len "is_@"))) ".")))]
     [True
       sym])))))
 
@@ -212,9 +212,9 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
     anything else => itself"
   (cond
     [(= key :)
-      '((get __builtins__ "slice") None)]
+      '(slice None)]
     [(and (instance? HyExpression key) (= (car key) :))
-      `((get __builtins__ "slice") ~@(cdr key))]
+      `(slice ~@(cdr key))]
     [True
       key]))
 
@@ -229,7 +229,7 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
     (if (.startswith sym "$")
       (if (= (len sym) 1)
         df-sym
-        (panda-get 'loc df-sym : (HyString (slice sym 1))))
+        (panda-get 'loc df-sym : (HyString (cut sym 1))))
       sym))))
 
 (defmacro wc [df &rest body]

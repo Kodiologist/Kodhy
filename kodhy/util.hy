@@ -224,7 +224,7 @@ for each first-order interaction. Constant columns are removed."
 (defn pretty-json-to-pd [path]
   (import json [pandas :as pd])
   (setv j (json.loads (slurp path)))
-  (setv df (pd.DataFrame (slice (get j "table") 1)
+  (setv df (pd.DataFrame (cut (get j "table") 1)
     :columns (get j "table" 0)))
   (when (get j "first_col_is_row_labels")
     (setv df (.set-index df (first df.columns))))
@@ -273,7 +273,7 @@ for each first-order interaction. Constant columns are removed."
     (lc [x args] x (string x))))
 
 (defn ucfirst [s]
-  (and s (+ (.upper (first s)) (slice s 1))))
+  (and s (+ (.upper (first s)) (cut s 1))))
 
 (defn double-quote [s]
   (.format "\"{}\""
@@ -303,7 +303,7 @@ without newlines outside string literals."
 
 (defn keyword->str [x]
   (if (keyword? x)
-    (slice x 2)
+    (cut x 2)
     x))
 
 (defn str->keyword [x]
@@ -540,15 +540,15 @@ and should return a 1D nparray of predictions given x-test."
       (when (in x rseen)
         (continue))
       (.add rseen x)
-      (setv new-remaining (+ (slice remaining 0 r-i) (slice remaining (+ r-i 1))))
+      (setv new-remaining (+ (cut remaining 0 r-i) (cut remaining (+ r-i 1))))
       (for [b-i (range n-bins)]
         (setv new-bin (+ (get bins b-i) (, x)))
         (when (and max-bin-size (> (sum new-bin) max-bin-size))
           (continue))
         (setv new-bins (tuple (sorted (+
-          (slice bins 0 b-i)
+          (cut bins 0 b-i)
           (, (tuple (sorted new-bin)))
-          (slice bins (+ b-i 1))))))
+          (cut bins (+ b-i 1))))))
         (setv new-state (, new-remaining new-bins))
         (when (in new-state states)
           (continue))
@@ -578,7 +578,7 @@ instead of calling `f` or consulting the existing cache."
 ;    (os.makedirs cache-dir))
   (unless cache-dir
     (setv cache-dir _default-cache-dir))
-  (setv basename (slice
+  (setv basename (cut
     (base64.b64encode (.digest (hashlib.md5 key)) (str "+_"))
     0 -2))
   (setv path (os.path.join cache-dir basename))
