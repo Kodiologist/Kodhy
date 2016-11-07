@@ -92,7 +92,8 @@ if no matching value is found."
 "Analogous to Haskell's liftM for Maybe. Evaluates
 'expr' and, if its value is not None, evaluates 'body' with the
 value bound to 'it'."
-  `(let [[it ~expr]]
+  `(do
+    (setv it ~expr)
     (when (is-not it None)
       ~@body)))
 
@@ -108,11 +109,13 @@ value bound to 'it'."
     '[True (raise (LookupError (+ "ecase: No match: " (repr it))))]))
 
 (defn case-f [keyform clauses extra]
-  `(let [[it ~keyform]] (cond
-    ~@(lc [form clauses]
-      `[(= it ~(first form))
-        ~(implicit-progn (slice form 1))])
-    ~@(if extra [extra] []))))
+  `(do
+    (setv it ~keyform)
+    (cond
+      ~@(lc [form clauses]
+        `[(= it ~(first form))
+          ~@(slice form 1)])
+      ~@(if extra [extra] []))))
 
 (defmacro replicate [n &rest body]
   `(list (map (lambda [_] ~@body) (range ~n))))
@@ -235,21 +238,23 @@ The replacement is recursive.
 `$` on its own becomes simply `df`."
   (setv df-sym (gensym))
   (setv body (dollar-replace df-sym body))
-  `(let [[~df-sym ~df]] ~@body))
+  `(do (setv ~df-sym ~df) ~@body))
 
 (defmacro ss [df &rest body]
 "Subset. Evaluate `body` like `wc`, which should produce a
 boolean vector. Return `df` indexed by the boolean vector."
   (setv df-sym (gensym))
   (setv body (dollar-replace df-sym body))
-  `(let [[~df-sym ~df]] (get ~df-sym ~@body)))
+  `(do (setv ~df-sym ~df) (get ~df-sym ~@body)))
 
 (defmacro ssi [df &rest body]
 "Subset index. Like `ss`, but returns a list of the indices that
 matched."
   (setv df-sym (gensym))
   (setv body (dollar-replace df-sym body))
-  `(let [[~df-sym ~df]] (.tolist (. (get ~df-sym ~@body) index))))
+  `(do
+    (setv ~df-sym ~df)
+    (.tolist (. (get ~df-sym ~@body) index))))
 
 (defmacro ordf [df &rest exprs]
 "Order data frame. (ordf d (.abs $baz) $bar) sorts first by the
