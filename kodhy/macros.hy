@@ -195,10 +195,11 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
 (defmacro geti [obj key1 &optional key2 key3]
   (panda-get 'iloc obj key1 key2 key3))
 
+(setv COLON :)
 (defmacro $ [obj key]
 ; Given a pd.DataFrame 'mtcars':
 ;     ($ mtcars hp)            =>  the column "hp"
-  (panda-get 'loc obj : (HyString key)))
+  (panda-get 'loc obj COLON (HyString key)))
 
 (defmacro geta [obj &rest keys]
 "For numpy arrays."
