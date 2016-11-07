@@ -13,32 +13,6 @@
     (setv p (.format "is_{}" (slice p None -1))))
   p)
 
-(defmacro kwc [f &rest a]
-"Keyword call.
-    (kwc f 1 :a 3 2 :b 4)  =>  f(1, 2, a = 3, b = 4)
-    (kwc f 1 :+a)          =>  f(1, a = True)
-    (kwc f 1 :!a)          =>  f(1, a = False)"
-  (kwc-f f a))
-
-(defn kwc-f [function input-args]
-  (setv input-args (list input-args))
-  (setv pargs [])
-  (setv kwargs [])
-  (while input-args
-    (setv x (.pop input-args 0))
-    (if (keyword? x) (do
-      (setv name (slice x 2))
-      (.extend kwargs (cond
-        [(.startswith name "+")
-          [(HyString (mangle (slice name 1))) 'True]]
-        [(.startswith name "!")
-          [(HyString (mangle (slice name 1))) 'False]]
-        [True
-          [(HyString (mangle name)) (.pop input-args 0)]])))
-    ; else
-      (.append pargs x)))
-  `(apply ~function ~(HyList pargs) ~(HyDict kwargs)))
-
 (defn implicit-progn [list-of-forms]
   (if (= (len list-of-forms) 1)
     (first list-of-forms)
@@ -75,16 +49,16 @@
   `(list-comp ~gen-expr [it ~args] ~filter-expr))
 
 (defmacro/g! amap2 [expr args]
-; (amap (+ a b) (range 10))  =>  [1, 5, 9, 13]
-  `(let [[~g!args (list ~args)]]
+; (amap2 (+ a b) (range 10))  =>  [1 5 9 13 17]
+  `(do
+    (setv ~g!args (list ~args))
     (when (% (len ~g!args) 2)
       (raise (ValueError "iterable argument must have an even number of elements")))
     (list (map
       (lambda [~g!i]
-        (let [
-            [a (get ~g!args ~g!i)]
-            [b (get ~g!args (+ 1 ~g!i))]]
-          ~expr))
+        (setv a (get ~g!args ~g!i))
+        (setv b (get ~g!args (inc ~g!i)))
+        ~expr)
       (range 0 (len ~g!args) 2)))))
 
 (defmacro/g! map-dvals [expr d]
@@ -206,9 +180,9 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
   `(classmethod (meth ~param-list ~@body)))
 
 (defmacro defcls [name inherit &rest body]
-  `(defclass ~name ~inherit ~(HyList (amap2
+  `(defclass ~name ~inherit ~@(amap2
     (HyList [a b])
-    body))))
+    body)))
 
 (defmacro getl [obj key1 &optional key2 key3]
 ; Given a pd.DataFrame 'mtcars':
