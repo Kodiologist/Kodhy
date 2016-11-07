@@ -79,14 +79,14 @@
 (defmacro afind [expr args]
   `(try
     (next (filter (lambda [it] ~expr) ~args))
-    (catch [_ StopIteration] (raise (ValueError "afind: no matching value found")))))
+    (except [_ StopIteration] (raise (ValueError "afind: no matching value found")))))
 
 (defmacro afind-or [expr args &optional [def 'None]]
 "The default expression 'def' is evaluated (and its value returned)
 if no matching value is found."
   `(try
     (next (filter (lambda [it] ~expr) ~args))
-    (catch [_ StopIteration] ~def)))
+    (except [_ StopIteration] ~def)))
 
 (defmacro whenn [expr &rest body]
 "Analogous to Haskell's liftM for Maybe. Evaluates
@@ -133,7 +133,7 @@ The value of the whole expression is that provided by 'ret' or
   (setv r (gensym))
   `(do (import [kodhy.util [_KodhyBlockReturn]]) (try
     (do ~@body)
-    (catch [~r _KodhyBlockReturn]
+    (except [~r _KodhyBlockReturn]
       (if (and (. ~r block-name) (!= (. ~r block-name) ~block-name))
         ; If the return named a block, and its name doesn't
         ; match ours, keep bubbling upwards.

@@ -590,7 +590,7 @@ instead of calling `f` or consulting the existing cache."
         (with [[o (open path "rb")]]
           (setv value (get (cPickle.load o) "value")))
         (setv write-value F))
-      (catch [e IOError]
+      (except [e IOError]
         (unless (= e.errno errno.ENOENT)
           (throw)))))
   (when (none? value)
