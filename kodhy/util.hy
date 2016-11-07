@@ -86,7 +86,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (import [pandas :as pd])
   (setv args (list args))
   (setv index None)
-  (when (and (keyword? (first args)) (= (first args) :I))
+  (when (and (string? (first args)) (= (first args) "I"))
     (shift args)
     (setv index (shift args)))
   (defn scalar? [x]
@@ -97,7 +97,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (setv chunks [])
   (while args
     (setv x (shift args))
-    (if (keyword? x)
+    (if (string? x)
       (do
         (setv chunk (shift args))
         (setv chunk (cond
@@ -107,7 +107,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
             (pd.Series (* [chunk] height))]
           [T
             (pd.Series chunk)]))
-        (setv chunk.name (keyword->str x))
+        (setv chunk.name x)
         (.append chunks chunk))
       (.append chunks (cond
           [(instance? pd.DataFrame x)

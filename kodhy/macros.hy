@@ -268,6 +268,12 @@ absolute value of the column `baz`, then by `bar`."
     (geti ~df-sym (. (.sort-values ~sorting-df (list (. ~sorting-df columns))) index))))
 ; ~pd
 
+(defmacro/g! cbind [&rest args]
+ `(do
+    (import [kodhy.util [cbind-join :as ~g!cj]])
+    (~g!cj "outer" ~@(lc [a args]
+      (if (keyword? a) (name a) a)))))
+
 (defmacro cached [expr &optional [bypass 'None] [cache-dir 'None]]
   `(do
      (import kodhy.util)
