@@ -171,18 +171,22 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
   (HyList (map HyString words)))
 
 (defmacro meth [param-list &rest body]
+"(meth [foo] (+ @bar foo))  =>  (fn [self foo] (+ self.bar foo))"
+  (meth-f param-list body))
+
+(defmacro cmeth [param-list &rest body]
+  `(classmethod ~(meth-f param-list body)))
+
+(defn meth-f [param-list body]
   `(fn [self ~@param-list] ~@(recur-sym-replace body (fn [sym] (cond
     [(.startswith sym "@")
-      (if (= sym "@")
+      (if (= sym "@@")
         'self
         `(. self ~@(amap (HySymbol it) (.split (cut sym 1) "."))))]
     [(.startswith sym "is_@")
       `(. self ~@(amap (HySymbol it) (.split (+ "is_" (cut sym (len "is_@"))) ".")))]
     [True
       sym])))))
-
-(defmacro cmeth [param-list &rest body]
-  `(classmethod (meth ~param-list ~@body)))
 
 (defmacro defcls [name inherit &rest body]
   `(defclass ~name ~inherit ~@(amap2
