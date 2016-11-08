@@ -1,8 +1,8 @@
-(require kodhy.macros)
+(require [kodhy.macros [block retf]])
 
 (import
   unittest
-  [kodhy.util [ret retf]])
+  [kodhy.util [ret]])
 
 (defn block-f [x]
   (setv l [])
@@ -23,13 +23,13 @@
     10))
   l)
 
-(defclass C [unittest.TestCase] [
+(defclass C [unittest.TestCase]
 
   [test-foofy (fn [self]
     (.assertEqual self (block-f 1) [1 2 3 4])
     (.assertEqual self (block-f 2) [1 2 5 6 10])
     (.assertEqual self (block-f 3) [1 2 7 8])
-    (.assertEqual self (block-f 4) [1 2 9 10]))]])
+    (.assertEqual self (block-f 4) [1 2 9 10]))])
 
 (when (= __name__ "__main__")
   (setv suite (.loadTestsFromTestCase (unittest.TestLoader) C))
