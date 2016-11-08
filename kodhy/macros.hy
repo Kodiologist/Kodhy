@@ -81,12 +81,12 @@
     (next (filter (lambda [it] ~expr) ~args))
     (except [StopIteration] (raise (ValueError "afind: no matching value found")))))
 
-(defmacro afind-or [expr args &optional [def 'None]]
-"The default expression 'def' is evaluated (and its value returned)
+(defmacro afind-or [expr args &optional default]
+"The default expression 'default' is evaluated (and its value returned)
 if no matching value is found."
   `(try
     (next (filter (lambda [it] ~expr) ~args))
-    (except [StopIteration] ~def)))
+    (except [StopIteration] ~default)))
 
 (defmacro whenn [expr &rest body]
 "Analogous to Haskell's liftM for Maybe. Evaluates
