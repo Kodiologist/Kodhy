@@ -23,9 +23,9 @@
     10))
   l)
 
-(defclass C [unittest.TestCase]
+(defclass C [unittest.TestCase] [
 
-  [test-foofy (fn [self]
+   test-foofy (fn [self]
     (.assertEqual self (block-f 1) [1 2 3 4])
     (.assertEqual self (block-f 2) [1 2 5 6 10])
     (.assertEqual self (block-f 3) [1 2 7 8])

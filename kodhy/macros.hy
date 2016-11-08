@@ -188,11 +188,6 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
     [True
       sym])))))
 
-(defmacro defcls [name inherit &rest body]
-  `(defclass ~name ~inherit ~@(amap2
-    (HyList [a b])
-    body)))
-
 (defmacro getl [obj key1 &optional key2 key3]
 ; Given a pd.DataFrame 'mtcars':
 ;    (getl mtcars "4 Drive" "hp")    =>  the cell "4 Drive", "hp"
