@@ -179,10 +179,12 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
 
 (defn meth-f [param-list body]
   `(fn [self ~@param-list] ~@(recur-sym-replace body (fn [sym] (cond
+    [(in sym ["@" "@="])
+      sym]
+    [(= sym "@@")
+      'self]
     [(.startswith sym "@")
-      (if (= sym "@@")
-        'self
-        `(. self ~@(amap (HySymbol it) (.split (cut sym 1) "."))))]
+      `(. self ~@(amap (HySymbol it) (.split (cut sym 1) ".")))]
     [(.startswith sym "is_@")
       `(. self ~@(amap (HySymbol it) (.split (+ "is_" (cut sym (len "is_@"))) ".")))]
     [True
