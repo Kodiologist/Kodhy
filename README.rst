@@ -1,4 +1,4 @@
-This repository contains many small functions and macros that I use to write `Hy`_ code. Python 2 is assumed.
+This repository contains many small functions and macros that I use to write `Hy`_ code. Python 3 is assumed.
 
 License
 ============================================================

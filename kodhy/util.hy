@@ -1,25 +1,16 @@
-(require kodhy.macros)
+(require [kodhy.macros [*]])
+
+(setv T True)
+(setv F False)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Numbers and arrays
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn xor [&rest args] (block
-  (setv v False)
-  (for [x args]
-    (if x
-      (do
-        (when v
-          (ret False))
-        (setv v x))
-      (unless v
-        (setv v x))))
-  v))
-
 (defn signum [x] (cond
   [(< x 0) -1]
   [(> x 0)  1]
-  [True     0]))
+  [T        0]))
 
 (defn product [l]
   (setv a 1)
@@ -39,12 +30,12 @@
   (/ 1 (+ 1 (numpy.exp (- x)))))
 
 (defn zscore [x]
-  (/ (- x (.mean x)) (kwc .std x :ddof 0)))
+  (/ (- x (.mean x)) (.std x :ddof 0)))
 
 (defn hzscore [x]
 "Half the z-score. Divides by two SDs instead of one, per:
 Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviations. Statistics in Medicine, 27(15), 2865–2873. doi:10.1002/sim.3107"
-  (/ (- x (.mean x)) (* 2 (kwc .std x :ddof 0))))
+  (/ (- x (.mean x)) (* 2 (.std x :ddof 0))))
 
 (defn rmse [v1 v2]
 "Root mean square error."
@@ -63,7 +54,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       v
       (pd.Series (list v)))))
   (if (none? y)
-    (.rename (kwc .value-counts x :!sort :!dropna)
+    (.rename (.value-counts x :sort F :dropna F)
       (λ (if (pd.isnull it) (str "N/A") it)))
     (pd.crosstab
       (.replace x np.nan "~N/A") (.replace y np.nan "~N/A"))))
@@ -95,7 +86,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (import [pandas :as pd])
   (setv args (list args))
   (setv index None)
-  (when (and (keyword? (first args)) (= (first args) :I))
+  (when (and (string? (first args)) (= (first args) "I"))
     (shift args)
     (setv index (shift args)))
   (defn scalar? [x]
@@ -106,7 +97,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (setv chunks [])
   (while args
     (setv x (shift args))
-    (if (keyword? x)
+    (if (string? x)
       (do
         (setv chunk (shift args))
         (setv chunk (cond
@@ -114,18 +105,18 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
             (.copy chunk)]
           [(scalar? chunk)
             (pd.Series (* [chunk] height))]
-          [True
+          [T
             (pd.Series chunk)]))
-        (setv chunk.name (keyword->str x))
+        (setv chunk.name x)
         (.append chunks chunk))
       (.append chunks (cond
           [(instance? pd.DataFrame x)
             x]
           [(scalar? x)
             (pd.Series (* [x] height))]
-          [True
+          [T
             (pd.Series x)]))))
-  (setv result (kwc pd.concat :objs chunks :axis 1 :join join))
+  (setv result (pd.concat :objs chunks :axis 1 :join join))
   (unless (none? index)
     (setv (. result index) index))
   result)
@@ -139,7 +130,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (setv d.columns (amap (first it) (first l)))
   d)
 
-(defn drop-unused-cats [d &optional [inplace False]]
+(defn drop-unused-cats [d &optional [inplace F]]
   ; Drops unused categories from all categorical columns.
   ; Can also be applied to a Series.
   (import [pandas :as pd])
@@ -147,7 +138,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     (setv d (.copy d)))
   (for [[_ col] (if (instance? pd.Series d) [[None d]] (.iteritems d))]
     (when (hasattr col "cat")
-      (kwc .remove-unused-categories col.cat :+inplace)))
+      (.remove-unused-categories col.cat :inplace T)))
   d)
 
 (defn rd [a1 &optional a2]
@@ -173,7 +164,7 @@ or both a number of digits to round to and such an object."
      (np.round x digits)]
    [(float? x)
      (round x digits)]
-   [True
+   [T
      x]))
 
 (defn with-1o-interacts [m &optional column-names]
@@ -195,11 +186,11 @@ for each first-order interaction. Constant columns are removed."
 
 (defn print-big-pd [obj]
   (import [pandas :as pd])
-  (with [[(pd.option-context
+  (with [(pd.option-context
       "display.max_rows" (int 5000)
       "display.max_columns" (int 100)
       "display.width" (int 1000)
-      "display.max_colwidth" (int 500))]]
+      "display.max_colwidth" (int 500))]
     (print obj)))
 
 (defn pd-to-pretty-json [path df]
@@ -215,13 +206,13 @@ for each first-order interaction. Constant columns are removed."
 
   (setv cols (list df.columns))
   (setv (get out "table") (.astype df.values object))
-  (setv (get out "first_col_is_row_labels") False)
+  (setv (get out "first_col_is_row_labels") F)
   (when (or df.index.name
       (not (.all (= df.index (list (range (len df)))))))
     ; We only include the index as a column if it has a name or
     ; is something other than consecutive integers starting from
     ; 0.
-    (setv (get out "first_col_is_row_labels") True)
+    (setv (get out "first_col_is_row_labels") T)
     (setv (get out "table") (np.column-stack [df.index (get out "table")]))
     (setv cols (+ [df.index.name] cols)))
   (setv (get out "table") (+ [cols] (.tolist (get out "table"))))
@@ -233,7 +224,7 @@ for each first-order interaction. Constant columns are removed."
 (defn pretty-json-to-pd [path]
   (import json [pandas :as pd])
   (setv j (json.loads (slurp path)))
-  (setv df (kwc pd.DataFrame (slice (get j "table") 1)
+  (setv df (pd.DataFrame (cut (get j "table") 1)
     :columns (get j "table" 0)))
   (when (get j "first_col_is_row_labels")
     (setv df (.set-index df (first df.columns))))
@@ -241,36 +232,6 @@ for each first-order interaction. Constant columns are removed."
     (setv (getl df : catcol)
       (apply .astype [(getl df : catcol) "category"] meta)))
    df)
-
-;(defn pd-to-pretty-json [path df]
-;  ; Serializes a Pandas dataframe to an obvious-looking JSON format.
-;  ; Categorical columns are converted to codes, but the original
-;  ; categories are provided as metadata.
-;  (import [numpy :as np])
-;  (setv df (.copy df))
-;  (setv out {})
-;
-;  (setv catcols (ssi df.dtypes (= $ "category")))
-;  (setv (get out "categories") (dict (rmap [col catcols]
-;    [col [(if (. (getl df : col) cat ordered) "ordered" "unordered")
-;      (list (. (getl df : col) cat categories))]])))
-;  (for [col catcols]
-;    (setv (getl df : col) (. (getl df : col) cat codes)))
-;
-;  (setv cols (list df.columns))
-;  (setv (get out "table") (.astype df.values object))
-;  (when (or df.index.name
-;      (not (.all (= df.index (list (range (len df)))))))
-;    ; We only include the index as a column if it has a name or
-;    ; is something other than consecutive integers starting from
-;    ; 0.
-;    (setv (get out "table") (np.column-stack [df.index (get out "table")]))
-;    (setv cols (+ [(or df.index.name "I")] cols)))
-;  (setv (get out "table") (+ [cols] (.tolist (get out "table"))))
-;
-;  (if path
-;    (barf path (json-dumps-pretty out))
-;    (json-dumps-pretty out)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Strings
@@ -282,7 +243,7 @@ for each first-order interaction. Constant columns are removed."
     (lc [x args] x (string x))))
 
 (defn ucfirst [s]
-  (and s (+ (.upper (first s)) (slice s 1))))
+  (and s (+ (.upper (first s)) (cut s 1))))
 
 (defn double-quote [s]
   (.format "\"{}\""
@@ -300,19 +261,19 @@ without newlines outside string literals."
     [(keyword? x)
       (+ ":" (keyword->str x))]
     [(instance? HySymbol x)
-      (unicode x)]
+      (str x)]
     [(instance? list x)
       (.format "[{}]" (.join " " (list (map show-expr x))))]
     [(instance? tuple x)
       (.format "(, {})" (.join " " (list (map show-expr x))))]
     [(string? x)
-      (double-quote (unicode x))]
-    [True
-      (unicode x)]))
+      (double-quote (str x))]
+    [T
+      (str x)]))
 
 (defn keyword->str [x]
   (if (keyword? x)
-    (slice x 2)
+    (cut x 2)
     x))
 
 (defn str->keyword [x]
@@ -341,7 +302,7 @@ without newlines outside string literals."
 
 (defn unique [l]
   (setv seen (set))
-  (filt (when (not-in it seen) (.add seen it) True) l))
+  (filt (when (not-in it seen) (.add seen it) T) l))
 
 (defn all-unique? [l]
   (= (len l) (len (set l))))
@@ -375,7 +336,7 @@ without newlines outside string literals."
       (raise (LookupError "Ambiguous matcher"))]
     [(= (len keys) 0)
       (raise (LookupError "No match"))]
-    [True
+    [T
       (get obj (get keys 0))]))
 
 (defn pairs [&rest a]
@@ -411,10 +372,10 @@ without newlines outside string literals."
   (when encoding
     (import codecs)
     (setv f codecs.open))
-  (with [[o (apply f [name] (dict (+
+  (with [o (apply f [name] (dict (+
       (if (none? mode)      [] [(, "mode" mode)])
       (if (none? encoding)  [] [(, "encoding" encoding)])
-      (if (none? buffering) [] [(, "buffering" buffering)]))))]]
+      (if (none? buffering) [] [(, "buffering" buffering)]))))]
     (o.read)))
 
 (defn barf [name content &optional [mode "w"] encoding buffering]
@@ -422,9 +383,9 @@ without newlines outside string literals."
   (when encoding
     (import codecs)
     (setv f codecs.open))
-  (with [[o (apply f [name mode] (dict (+
+  (with [o (apply f [name mode] (dict (+
       (if (none? encoding)  [] [(, "encoding" encoding)])
-      (if (none? buffering) [] [(, "buffering" buffering)]))))]]
+      (if (none? buffering) [] [(, "buffering" buffering)]))))]
     (o.write content)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -437,7 +398,7 @@ without newlines outside string literals."
   ; option defaults.
   (import json uuid)
   (for [[option value] (pairs
-      :indent 2 :separators (, "," ": ") :sort_keys True)]
+      :indent 2 :separators (, "," ": ") :sort_keys T)]
     (when (none? (.get kwargs option))
       (setv (get kwargs option) value)))
   (setv substituted-parts {})
@@ -446,7 +407,7 @@ without newlines outside string literals."
     ; strings.
     (if (isinstance x (, list tuple dict))
       (if (all (lc [v (if (isinstance x dict) (.values x) x)]
-            (isinstance v (, bool (type None) int long float str unicode))))
+            (isinstance v (, bool (type None) int long float str))))
         (do
           (setv my-id (. (uuid.uuid4) hex))
           (setv (get substituted-parts my-id) x)
@@ -468,7 +429,7 @@ without newlines outside string literals."
 ;; * Cross-validation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn kfold-cv-pred [x y f &optional [n-folds 10] [shuffle True] [random-state None] folds]
+(defn kfold-cv-pred [x y f &optional [n-folds 10] [shuffle T] [random-state None] folds]
 "Return a np of predictions of y given x using f. x is expected to be
 a numpy matrix, not a pandas DataFrame.
 
@@ -479,13 +440,13 @@ and should return a 1D nparray of predictions given x-test."
   (unless folds
     (import [sklearn.model-selection :as skms])
     (setv folds (.split
-      (kwc skms.KFold :n-splits n-folds
+      (skms.KFold :n-splits n-folds
         :shuffle shuffle :random-state random-state)
       x)))
   (for [[train-i test-i] folds]
     (setv result (f (get x train-i) (get y train-i) (get x test-i)))
     (when (none? y-pred)
-      (setv y-pred (kwc np.empty-like y :dtype result.dtype)))
+      (setv y-pred (np.empty-like y :dtype result.dtype)))
     (setv (get y-pred test-i) result))
   y-pred)
 
@@ -549,15 +510,15 @@ and should return a 1D nparray of predictions given x-test."
       (when (in x rseen)
         (continue))
       (.add rseen x)
-      (setv new-remaining (+ (slice remaining 0 r-i) (slice remaining (+ r-i 1))))
+      (setv new-remaining (+ (cut remaining 0 r-i) (cut remaining (+ r-i 1))))
       (for [b-i (range n-bins)]
         (setv new-bin (+ (get bins b-i) (, x)))
         (when (and max-bin-size (> (sum new-bin) max-bin-size))
           (continue))
         (setv new-bins (tuple (sorted (+
-          (slice bins 0 b-i)
+          (cut bins 0 b-i)
           (, (tuple (sorted new-bin)))
-          (slice bins (+ b-i 1))))))
+          (cut bins (+ b-i 1))))))
         (setv new-state (, new-remaining new-bins))
         (when (in new-state states)
           (continue))
@@ -582,24 +543,26 @@ and should return a 1D nparray of predictions given x-test."
 "Call `f`, caching the value with the string `key`. If `bypass`
 is provided, its value is written to the cache and returned
 instead of calling `f` or consulting the existing cache."
-  (import cPickle hashlib base64 os os.path errno time)
+  (import pickle hashlib base64 os os.path errno time)
 ;  (unless (os.path.exists cache-dir)
 ;    (os.makedirs cache-dir))
   (unless cache-dir
     (setv cache-dir _default-cache-dir))
-  (setv basename (slice
-    (base64.b64encode (.digest (hashlib.md5 key)) (str "+_"))
-    0 -2))
+  (setv basename (str (cut
+    (base64.b64encode
+      (.digest (hashlib.md5 (.encode key "UTF8")))
+      (.encode "+_" "ASCII"))
+    0 -2) "ASCII"))
   (setv path (os.path.join cache-dir basename))
   (setv value bypass)
-  (setv write-value True)
+  (setv write-value T)
   (when (none? value)
     (try
       (do
-        (with [[o (open path "rb")]]
-          (setv value (get (cPickle.load o) "value")))
-        (setv write-value False))
-      (catch [e IOError]
+        (with [o (open path "rb")]
+          (setv value (get (pickle.load o) "value")))
+        (setv write-value F))
+      (except [e IOError]
         (unless (= e.errno errno.ENOENT)
           (throw)))))
   (when (none? value)
@@ -610,17 +573,17 @@ instead of calling `f` or consulting the existing cache."
       "key" key
       "value" value
       "time" (time.time)})
-    (with [[o (open path "wb")]]
-      (cPickle.dump d o cPickle.HIGHEST-PROTOCOL)))
+    (with [o (open path "wb")]
+      (pickle.dump d o pickle.HIGHEST-PROTOCOL)))
   value)
 
 (defn show-cache [&optional [cache-dir _default-cache-dir]]
 "Pretty-print the caches of 'cached-eval' in chronological order."
-  (import cPickle os os.path datetime)
+  (import pickle os os.path datetime)
   (setv items
-    (kwc sorted :key (λ (get it "time"))
-    (amap (with [[o (open (os.path.join cache-dir it) "rb")]]
-      (cPickle.load o))
+    (sorted :key (λ (get it "time"))
+    (amap (with [o (open (os.path.join cache-dir it) "rb")]
+      (pickle.load o))
     (os.listdir cache-dir))))
   (for [item items]
     (print "Basename:" (get item "basename"))
@@ -640,7 +603,7 @@ instead of calling `f` or consulting the existing cache."
   (amap (.format "s{:03d}" it) s))
 
 (defn unpack-tversky [db-path &optional
-    [include-incomplete True]
+    [include-incomplete T]
     exclude-sns]
   (import sqlite3 [pandas :as pd])
   (try
@@ -648,7 +611,7 @@ instead of calling `f` or consulting the existing cache."
       (setv db (sqlite3.connect db-path))
       (.execute db "pragma foreign_keys = on")
 
-      (setv sb (kwc pd.read-sql-query :con db :index-col "sn"
+      (setv sb (pd.read-sql-query :con db :index-col "sn"
         :parse-dates (dict (amap (, it {"unit" "s"}) (qw consented_t began_t completed_t)))
         "select
             sn, experimenter, ip, task,
@@ -667,30 +630,30 @@ instead of calling `f` or consulting the existing cache."
       ; Make some columns categorical, with the levels ordered
       ; chronologically.
       (for [c (qw experimenter ip hit task)]
-        (setv (getl sb : c) (kwc pd.Categorical
+        (setv (getl sb : c) (pd.Categorical
           (getl sb : c)
-          :+ordered
+          :ordered T
           :categories (list (.unique (.dropna (getl (.sort-values sb "began_t") : c)))))))
       (setv ($ sb tv) (+ 1 (. ($ sb task) cat codes)))
         ; "tv" for "task version".
       (when exclude-sns
         (setv sb (.drop sb exclude-sns)))
       (unless include-incomplete
-        (setv sb (kwc .dropna sb :subset ["completed_t"])))
+        (setv sb (.dropna sb :subset ["completed_t"])))
 
       (.execute db "create temporary table IncludeSN(sn integer primary key)")
       (.executemany db "insert into IncludeSN (sn) values (?)" (amap (, it) sb.index))
 
-      (setv dat (.sortlevel (geti (kwc pd.read-sql-query :con db :index-col ["sn" "k"]
+      (setv dat (.sortlevel (geti (pd.read-sql-query :con db :index-col ["sn" "k"]
         "select * from D where sn in (select * from IncludeSN)") : 0)))
 
-      (setv timing (.sortlevel (kwc pd.read-sql-query :con db :index-col ["sn" "k"]
+      (setv timing (.sortlevel (pd.read-sql-query :con db :index-col ["sn" "k"]
         :parse-dates (dict (amap (, it {"unit" "s"}) (qw first_sent received)))
         "select * from Timing where sn in (select * from IncludeSN)")))
 
       (setv sb.index (tversky-format-s sb.index))
       (for [df [dat timing]]
-        (kwc .set-levels df.index :+inplace :level "sn"
+        (.set-levels df.index :inplace T :level "sn"
           (tversky-format-s (first df.index.levels))))
 
       (, sb dat timing))
@@ -703,17 +666,16 @@ instead of calling `f` or consulting the existing cache."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defclass _KodhyBlockReturn [Exception] [
-  [__init__ (fn [self block-name value]
-    (setv self.block-name block-name)
-    (setv self.value value)
-    None)]])
+  __init__ (meth [block-name value]
+    (setv @block-name block-name)
+    (setv @value value))])
 
 (defn ret [&optional value]
 "Return from the innermost 'block'."
   (raise (_KodhyBlockReturn None value)))
 
-(defn retf [block-name &optional value]
-"Return from the innermost 'block' with the given name, a keyword."
+(defn ret-from [block-name &optional value]
+"Return from the innermost 'block' with the given name."
   (raise (_KodhyBlockReturn block-name value)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -732,11 +694,11 @@ like a histogram. Missing values are silently ignored."
 
   (setv rows [])
   (for [x (sorted (filt (and (not (isnan it)) (is-not it None)) xs))]
-    (setv placed False)
+    (setv placed F)
     (for [row rows]
       (when (>= (- x (get row -1)) diam)
         (.append row x)
-        (setv placed True)
+        (setv placed T)
         (break)))
     (unless placed
       (.append rows [x])))
@@ -747,27 +709,27 @@ like a histogram. Missing values are silently ignored."
     (setv ax (plt.gca)))
   (.set-aspect ax "equal")
   (for [side (qw left right top)]
-    (.set-visible (get (. ax spines) side) False))
+    (.set-visible (get (. ax spines) side) F))
   
   ; Vaculously plot the points so the axes are scaled
   ; appropriately and interactive mode is respected.
-  (kwc plt.scatter x y)
+  (plt.scatter x y)
   ; Now add the visible markers.
   (unless (in "color" kwargs)
     (setv (get kwargs "color") "black"))
   (setv collection (apply PatchCollection
-    (if (.pop kwargs "rect" False)
+    (if (.pop kwargs "rect" F)
       [(lc [[x0 y0] (zip x y)] (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))]
       [(lc [[x0 y0] (zip x y)] (plt.Circle (, x0 y0) (/ diam 2)))])
     kwargs))
   (.add-collection ax collection)
 
-  (kwc .tick-params ax :!left :!labelleft)
-  (kwc .set-ylim ax :bottom 0)
+  (.tick-params ax :left F :labelleft F)
+  (.set-ylim ax :bottom 0)
 
   collection)
 
 (defn rectplot [xs &optional [diam 1] ax &kwargs kwargs]
 "`dotplot` using rectangles instead of circles."
-  (setv (get kwargs "rect") True)
+  (setv (get kwargs "rect") T)
   (apply dotplot [xs diam ax] kwargs))
