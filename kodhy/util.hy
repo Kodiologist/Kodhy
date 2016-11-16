@@ -261,15 +261,15 @@ without newlines outside string literals."
     [(keyword? x)
       (+ ":" (keyword->str x))]
     [(instance? HySymbol x)
-      (unicode x)]
+      (str x)]
     [(instance? list x)
       (.format "[{}]" (.join " " (list (map show-expr x))))]
     [(instance? tuple x)
       (.format "(, {})" (.join " " (list (map show-expr x))))]
     [(string? x)
-      (double-quote (unicode x))]
+      (double-quote (str x))]
     [T
-      (unicode x)]))
+      (str x)]))
 
 (defn keyword->str [x]
   (if (keyword? x)
@@ -407,7 +407,7 @@ without newlines outside string literals."
     ; strings.
     (if (isinstance x (, list tuple dict))
       (if (all (lc [v (if (isinstance x dict) (.values x) x)]
-            (isinstance v (, bool (type None) int long float str unicode))))
+            (isinstance v (, bool (type None) int long float str))))
         (do
           (setv my-id (. (uuid.uuid4) hex))
           (setv (get substituted-parts my-id) x)
