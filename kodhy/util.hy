@@ -543,7 +543,7 @@ and should return a 1D nparray of predictions given x-test."
 "Call `f`, caching the value with the string `key`. If `bypass`
 is provided, its value is written to the cache and returned
 instead of calling `f` or consulting the existing cache."
-  (import cPickle hashlib base64 os os.path errno time)
+  (import pickle hashlib base64 os os.path errno time)
 ;  (unless (os.path.exists cache-dir)
 ;    (os.makedirs cache-dir))
   (unless cache-dir
@@ -558,7 +558,7 @@ instead of calling `f` or consulting the existing cache."
     (try
       (do
         (with [o (open path "rb")]
-          (setv value (get (cPickle.load o) "value")))
+          (setv value (get (pickle.load o) "value")))
         (setv write-value F))
       (except [e IOError]
         (unless (= e.errno errno.ENOENT)
@@ -572,16 +572,16 @@ instead of calling `f` or consulting the existing cache."
       "value" value
       "time" (time.time)})
     (with [o (open path "wb")]
-      (cPickle.dump d o cPickle.HIGHEST-PROTOCOL)))
+      (pickle.dump d o pickle.HIGHEST-PROTOCOL)))
   value)
 
 (defn show-cache [&optional [cache-dir _default-cache-dir]]
 "Pretty-print the caches of 'cached-eval' in chronological order."
-  (import cPickle os os.path datetime)
+  (import pickle os os.path datetime)
   (setv items
     (sorted :key (λ (get it "time"))
     (amap (with [o (open (os.path.join cache-dir it) "rb")]
-      (cPickle.load o))
+      (pickle.load o))
     (os.listdir cache-dir))))
   (for [item items]
     (print "Basename:" (get item "basename"))
