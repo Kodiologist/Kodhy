@@ -279,7 +279,7 @@ absolute value of the column `baz`, then by `bar`."
  `(do
     (import [kodhy.util [cbind-join :as ~g!cj]])
     (~g!cj "outer" ~@(lc [a args]
-      (if (keyword? a) (name a) a)))))
+      (if (keyword? a) (cut a 2) a)))))
 
 (defmacro cached [expr &optional [bypass 'None] [cache-dir 'None]]
   `(do
