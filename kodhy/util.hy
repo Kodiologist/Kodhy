@@ -78,6 +78,13 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (import [numpy :as np])
   (// (.astype series np.int64) (int 1e9)))
 
+(defn pd-rename-cats [series f-or-dict]
+  (.cat.rename-categories series (amap
+    (if (callable f-or-dict)
+      (f-or-dict it)
+      (.get f-or-dict it it))
+    series.cat.categories)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Matrices and DataFrames
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
