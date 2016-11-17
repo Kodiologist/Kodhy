@@ -204,7 +204,7 @@ for each first-order interaction. Constant columns are removed."
   ; Serializes a Pandas dataframe to an obvious-looking JSON format.
   ; Information about categorial columns is saved as metadata.
   (import [numpy :as np] [collections [OrderedDict]])
-  (setv out {})
+  (setv out (OrderedDict))
 
   (setv (get out "categories") (OrderedDict (rmap [col (ssi df.dtypes (= $ "category"))]
     [col {
@@ -222,11 +222,11 @@ for each first-order interaction. Constant columns are removed."
     (setv (get out "first_col_is_row_labels") T)
     (setv (get out "table") (np.column-stack [df.index (get out "table")]))
     (setv cols (+ [df.index.name] cols)))
-  (setv (get out "table") (+ [cols] (.tolist (get out "table"))))
+  (setv (get out "table") (+ [cols] (.tolist (get out "table")))) 
+  (.move-to-end out "table")
 
-  (if (none? path)
-    (json-dumps-pretty out)
-    (barf path (json-dumps-pretty out))))
+  (setv jstr (json-dumps-pretty out :sort_keys F))
+  (if path (barf path jstr) jstr))
 
 (defn pretty-json-to-pd [path]
   (import json [pandas :as pd])
@@ -420,7 +420,7 @@ without newlines outside string literals."
           (setv (get substituted-parts my-id) x)
           my-id)
         (if (isinstance x dict)
-          (dict (lc [[k v] (.items x)] (, k (recursive-subst v))))
+          ((type x) (lc [[k v] (.items x)] (, k (recursive-subst v))))
           (lc [v x] (recursive-subst v))))
       x))
   (setv json-str (apply json.dumps [(recursive-subst o)] kwargs))
