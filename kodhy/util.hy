@@ -397,8 +397,8 @@ without newlines outside string literals."
   ; printed without internal indents, and with different
   ; option defaults.
   (import json uuid)
-  (for [[option value] (pairs
-      :indent 2 :separators (, "," ": ") :sort_keys T)]
+  (for [[option value] [
+      ["indent" 2] ["separators" (, "," ": ")] ["sort_keys" T]]]
     (when (none? (.get kwargs option))
       (setv (get kwargs option) value)))
   (setv substituted-parts {})
@@ -407,7 +407,7 @@ without newlines outside string literals."
     ; strings.
     (if (isinstance x (, list tuple dict))
       (if (all (lc [v (if (isinstance x dict) (.values x) x)]
-            (isinstance v (, bool (type None) int long float str))))
+            (isinstance v (, bool (type None) int float str bytes))))
         (do
           (setv my-id (. (uuid.uuid4) hex))
           (setv (get substituted-parts my-id) x)
