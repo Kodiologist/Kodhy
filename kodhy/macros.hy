@@ -235,7 +235,7 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
     (if (.startswith sym "$")
       (if (= (len sym) 1)
         df-sym
-        (panda-get 'loc df-sym : (HyString (cut sym 1))))
+        (panda-get 'loc df-sym COLON (HyString (cut sym 1))))
       sym))))
 
 (defmacro wc [df &rest body]
