@@ -203,7 +203,7 @@ for each first-order interaction. Constant columns are removed."
 (defn pd-to-pretty-json [path df]
   ; Serializes a Pandas dataframe to an obvious-looking JSON format.
   ; Information about categorial columns is saved as metadata.
-  (import [numpy :as np] [collections [OrderedDict]])
+  (import [math [isnan]] [numpy :as np] [collections [OrderedDict]])
   (setv out (OrderedDict))
 
   (setv (get out "categories") (OrderedDict (rmap [col (ssi df.dtypes (= $ "category"))]
@@ -212,7 +212,9 @@ for each first-order interaction. Constant columns are removed."
       (, "categories" (list (. (getl df : col) cat categories)))])])))
 
   (setv cols (list df.columns))
-  (setv (get out "table") (.astype df.values object))
+  (setv table (.astype df.values object))
+  (setv table ((np.vectorize :otypes [object]
+     (λ (if (and (float? it) (isnan it)) None it))) table))
   (setv (get out "first_col_is_row_labels") F)
   (when (or df.index.name
       (not (.all (= df.index (list (range (len df)))))))
@@ -220,10 +222,9 @@ for each first-order interaction. Constant columns are removed."
     ; is something other than consecutive integers starting from
     ; 0.
     (setv (get out "first_col_is_row_labels") T)
-    (setv (get out "table") (np.column-stack [df.index (get out "table")]))
+    (setv table (np.column-stack [df.index table]))
     (setv cols (+ [df.index.name] cols)))
-  (setv (get out "table") (+ [cols] (.tolist (get out "table")))) 
-  (.move-to-end out "table")
+  (setv (get out "table") (+ [cols] (.tolist table)))
 
   (setv jstr (json-dumps-pretty out :sort_keys F))
   (if path (barf path jstr) jstr))
@@ -238,7 +239,7 @@ for each first-order interaction. Constant columns are removed."
   (for [[catcol meta] (.items (.get j "categories" {}))]
     (setv (getl df : catcol)
       (apply .astype [(getl df : catcol) "category"] meta)))
-   df)
+  df)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Strings
