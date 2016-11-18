@@ -207,9 +207,9 @@ for each first-order interaction. Constant columns are removed."
   (setv out (OrderedDict))
 
   (setv (get out "categories") (OrderedDict (rmap [col (ssi df.dtypes (= $ "category"))]
-    [col {
-      "ordered" (. (getl df : col) cat ordered)
-      "categories" (list (. (getl df : col) cat categories))}])))
+    [col (OrderedDict [
+      (, "ordered" (. (getl df : col) cat ordered))
+      (, "categories" (list (. (getl df : col) cat categories)))])])))
 
   (setv cols (list df.columns))
   (setv (get out "table") (.astype df.values object))
