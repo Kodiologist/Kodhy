@@ -141,7 +141,7 @@ The value of the whole expression is that provided by 'ret' or
         ; Otherwise, we can stop here. Return the return value.
         (. ~r value))))))
 
-(defmacro retf [block-name &optional value]
+(defmacro retf [block-name &optional [value 'None]]
   `(do
     (import [kodhy.util [_KodhyBlockReturn]])
     (raise (apply _KodhyBlockReturn [~block-name ~value]))))
