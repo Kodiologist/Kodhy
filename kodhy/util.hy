@@ -687,6 +687,56 @@ instead of calling `f` or consulting the existing cache."
   (raise (_KodhyBlockReturn block-name value)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; * Interoperability with R
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setv _Rproc None)
+
+(defn _R-setup []
+  (import pyper)
+  (global _Rproc)
+  (when (none? _Rproc)
+    (setv _Rproc (pyper.R))))
+
+(defn R-run [expr]
+  (_R-setup)
+  (.run _Rproc expr))
+
+(defn R-assign [lvalue rvalue]
+  (_R-setup)
+  (.assign _Rproc lvalue rvalue))
+
+(defn R-call [fname &rest args &kwonly [print-it True] &kwargs kwargs]
+  (import [collections [OrderedDict]])
+  (_R-setup)
+  (setv arg-string "")
+  (for [[i a] (enumerate (+ args (tuple (sorted (.items kwargs)))))]
+    (setv kw (>= i (len args)))
+    (setv value (if kw (second a) a))
+    (if (and (is (type value) list) (= (first value) :raw))
+      (setv expr (second value))
+      (do
+        (setv expr (+ "Kodhy_arg_" (str i)))
+        (.assign _Rproc expr value)))
+;    (if (in "DataFrame" (str (type value)))
+;      (do
+;        ; Work around a bug in Pyper where large DataFrames don't
+;        ; get assigned for some reason. The workaround is not very
+;        ; general, but should work for Comorbid.
+;        (.assign _Rproc variable (.as-matrix value))
+;        (.run _Rproc (.format "{} = data.frame({})" variable variable))
+;        (.assign _Rproc (.format "colnames({})" variable) value.columns.values))
+;      (.assign _Rproc variable value))
+    (when i
+      (+= arg-string ", "))
+    (when kw
+      (+= arg-string (+ (first a) " = ")))
+    (+= arg-string expr))
+  ((if print-it print identity)
+    (.run _Rproc (.format "Kodhy_out = {}({})" fname arg-string)))
+  (.get _Rproc "Kodhy_out"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Plotting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
