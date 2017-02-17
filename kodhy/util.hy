@@ -706,6 +706,10 @@ instead of calling `f` or consulting the existing cache."
   (_R-setup)
   (.assign _Rproc lvalue rvalue))
 
+(defn R-get [expr]
+  (_R-setup)
+  (.get _Rproc expr))
+
 (defn R-call [fname &rest args &kwonly [print-it True] &kwargs kwargs]
   (import [collections [OrderedDict]])
   (_R-setup)
