@@ -150,12 +150,8 @@ The value of the whole expression is that provided by 'ret' or
   ; Recursive symbol replacement.
   [(instance? HySymbol expr)
     (f expr)]
-  [(instance? tuple expr)
-    (tuple (amap (recur-sym-replace it f) expr))]
   [(coll? expr)
-    (for [i (range (len expr))]
-      (setv (get expr i) (recur-sym-replace (get expr i) f)))
-     expr]
+    ((type expr) (amap (recur-sym-replace it f) expr))]
   [True
     expr]))
 
