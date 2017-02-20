@@ -226,7 +226,7 @@ for each first-order interaction. Constant columns are removed."
     (setv cols (+ [df.index.name] cols)))
   (setv (get out "table") (+ [cols] (.tolist table)))
 
-  (setv jstr (json-dumps-pretty out :sort_keys F))
+  (setv jstr (json-dumps-pretty out :sort-keys F))
   (if path (barf path jstr) jstr))
 
 (defn pretty-json-to-pd [path]
