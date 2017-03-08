@@ -21,6 +21,11 @@
 (defn odds-ratio [p1 p2]
   (/ (* p1 (- 1 p2)) (* p2 (- 1 p1))))
 
+(defn odds-ratio-on-p [oratio p]
+  ; How an odds ratio changes a probability.
+  ; Identity: (= p1 (odds-ratio-on-p (odds-ratio p1 p2) p2))
+  (/ (* oratio p) (+ 1 (* p (- oratio 1)))))
+
 (defn logit [x]
   (import numpy)
   (numpy.log (/ x (- 1 x))))
