@@ -32,18 +32,18 @@
 ;   => ["0X" "1Y" "2Z" "3Z" "4Y"]
   (setv [lvalue args] arglist)
   `(list (map
-    (lambda [~g!arg]
+    (fn [~g!arg]
       (setv ~lvalue ~g!arg)
       ~@expr)
     ~args)))
 
 (defmacro amap [expr args]
 "'a' stands for 'anaphoric'."
-  `(list (map (lambda [it] ~expr) ~args)))
+  `(list (map (fn [it] ~expr) ~args)))
 ;  `(list-comp ~expr [it ~args]))  ; The expr doesn't seem to be able to see "it" if it's a (with ...) form.
 
 (defmacro filt [expr args]
-  `(list (filter (lambda [it] ~expr) ~args)))
+  `(list (filter (fn [it] ~expr) ~args)))
 
 (defmacro fmap [gen-expr filter-expr args]
   `(list-comp ~gen-expr [it ~args] ~filter-expr))
@@ -55,7 +55,7 @@
     (when (% (len ~g!args) 2)
       (raise (ValueError "iterable argument must have an even number of elements")))
     (list (map
-      (lambda [~g!i]
+      (fn [~g!i]
         (setv a (get ~g!args ~g!i))
         (setv b (get ~g!args (inc ~g!i)))
         ~expr)
@@ -63,7 +63,7 @@
 
 (defmacro/g! map-dvals [expr d]
   `(dict (map
-    (lambda [~g!pair]
+    (fn [~g!pair]
       (setv it (get ~g!pair 1))
       (, (get ~g!pair 0) ~expr))
     (.items ~d))))
@@ -78,14 +78,14 @@
 
 (defmacro afind [expr args]
   `(try
-    (next (filter (lambda [it] ~expr) ~args))
+    (next (filter (fn [it] ~expr) ~args))
     (except [StopIteration] (raise (ValueError "afind: no matching value found")))))
 
 (defmacro afind-or [expr args &optional default]
 "The default expression 'default' is evaluated (and its value returned)
 if no matching value is found."
   `(try
-    (next (filter (lambda [it] ~expr) ~args))
+    (next (filter (fn [it] ~expr) ~args))
     (except [StopIteration] ~default)))
 
 (defmacro whenn [expr &rest body]
@@ -118,7 +118,7 @@ value bound to 'it'."
       ~@(if extra [extra] []))))
 
 (defmacro replicate [n &rest body]
-  `(list (map (lambda [_] ~@body) (range ~n))))
+  `(list (map (fn [_] ~@body) (range ~n))))
 
 (defmacro block [&rest body]
 "Evaluate the given expressions while allowing you to jump out
@@ -156,10 +156,10 @@ The value of the whole expression is that provided by 'ret' or
     expr]))
 
 (defmacro λ [&rest body]
-  `(lambda [it] ~@body))
+  `(fn [it] ~@body))
 
 ;(defmacro λ2 [&rest body]
-;  `(lambda [x y] ~@body))
+;  `(fn [x y] ~@body))
 
 (defmacro qw [&rest words]
 "(qw foo bar baz) => ['foo', 'bar', 'baz']
