@@ -215,8 +215,8 @@ Caveat: hyphens are transformed to underscores, and *foo* to FOO."
   (cond
     [(= key :)
       '(slice None)]
-    [(and (instance? HyExpression key) (= (car key) :))
-      `(slice ~@(cdr key))]
+    [(and (instance? HyExpression key) (= (get key 0) :))
+      `(slice ~@(cut key 1))]
     [True
       key]))
 
