@@ -154,8 +154,9 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   d)
 
 (defn rd [a1 &optional a2]
-"Round for display. Takes just a number, array, Series, or DataFrame,
-or both a number of digits to round to and such an object."
+"Round for display. Takes just a number, array, Series, DataFrame,
+or other collection, or both a number of digits to round to and
+such an object."
   (import [numpy :as np] [pandas :as pd])
   (setv [x digits] (if (is a2 None) [a1 3] [a2 a1]))
   (cond
@@ -174,6 +175,8 @@ or both a number of digits to round to and such an object."
      x)]
    [(instance? np.ndarray x)
      (np.round x digits)]
+   [(coll? x)
+    ((type x) (amap (rd digits it) x))]
    [(float? x)
      (round x digits)]
    [T
