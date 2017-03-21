@@ -321,7 +321,14 @@ without newlines outside string literals."
   (filt (when (not-in it seen) (.add seen it) T) l))
 
 (defn all-unique? [l]
-  (= (len l) (len (set l))))
+  (setv seen (set))
+  (setv retv True)
+  (for [x l]
+    (when (in x seen)
+      (setv retv False)
+      (break))
+    (.add seen x))
+  retv)
 
 (defn mins [iterable &optional [key (λ it)] comparator-fn [agg-fn min]]
   ; Returns a list of minimizing values of the iterable,
