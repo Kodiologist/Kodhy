@@ -52,6 +52,11 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (import [numpy :as np])
   (np.mean (np.abs (- v1 v2))))
 
+(defn jitter [v &optional [factor 100]]
+  (import [numpy :as np])
+  (setv b (/ (- (.max v) (.min v)) (* 2 factor)))
+  (+ v (np.random.uniform (- b) b (len v))))
+
 (defn valcounts [x &optional y]
   (import [pandas :as pd] [numpy :as np])
   (setv [x y] (rmap [v [x y]]
