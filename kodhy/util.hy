@@ -791,25 +791,19 @@ like a histogram. Missing values are silently ignored."
     (setv ax (plt.gca)))
   (.set-aspect ax "equal")
   (for [side (qw left right top)]
-    (.set-visible (get (. ax spines) side) F))
-  
-  ; Vaculously plot the points so the axes are scaled
-  ; appropriately and interactive mode is respected.
-  (plt.scatter x y)
+    (.set-visible (get ax.spines side) F))
+  (.set-xlim ax (- (min x) diam) (+ (max x) diam))
+  (.set-ylim ax 0 (+ (max y) diam))
+  (.tick-params ax :left F :labelleft F)
+
   ; Now add the visible markers.
   (unless (in "color" kwargs)
     (setv (get kwargs "color") "black"))
-  (setv collection (apply PatchCollection
-    (if (.pop kwargs "rect" F)
-      [(lc [[x0 y0] (zip x y)] (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))]
-      [(lc [[x0 y0] (zip x y)] (plt.Circle (, x0 y0) (/ diam 2)))])
-    kwargs))
-  (.add-collection ax collection)
-
-  (.tick-params ax :left F :labelleft F)
-  (.set-ylim ax :bottom 0)
-
-  collection)
+  (.add-collection ax (apply PatchCollection
+    [(if (.pop kwargs "rect" F)
+      (lc [[x0 y0] (zip x y)] (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))
+      (lc [[x0 y0] (zip x y)] (plt.Circle (, x0 y0) (/ diam 2))))]
+    kwargs)))
 
 (defn rectplot [xs &optional [diam 1] ax &kwargs kwargs]
 "`dotplot` using rectangles instead of circles."
