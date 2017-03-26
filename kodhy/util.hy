@@ -809,3 +809,24 @@ like a histogram. Missing values are silently ignored."
 "`dotplot` using rectangles instead of circles."
   (setv (get kwargs "rect") T)
   (apply dotplot [xs diam ax] kwargs))
+
+(defn density-plot [xs &optional bw lo hi [steps 257] ax &kwargs kwargs]
+  ; The default `steps` is chosen to be 1 plus a power of 2.
+
+  (import
+    [numpy :as np]
+    [scipy.stats :as scist]
+    [matplotlib.pyplot :as plt])
+
+  (setv kde (scist.gaussian-kde xs :bw-method bw))
+  (setv test-points (np.linspace :num steps
+    (if (none? lo) (np.min xs) lo)
+    (if (none? hi) (np.max xs) hi)))
+
+  (unless ax
+    (setv ax (plt.gca)))
+  (for [side (qw left right top)]
+    (.set-visible (get ax.spines side) F))
+  (.tick-params ax :left F :labelleft F)
+
+  (apply .plot [ax test-points (kde test-points)] kwargs))
