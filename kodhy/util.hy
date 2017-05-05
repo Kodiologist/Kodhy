@@ -223,6 +223,8 @@ for each first-order interaction. Constant columns are removed."
     [col (OrderedDict [
       (, "ordered" (. (getl df : col) cat ordered))
       (, "categories" (list (. (getl df : col) cat categories)))])])))
+  (unless (get out "categories")
+    (del (get out "categories")))
 
   (setv cols (list df.columns))
   (setv table (.astype df.values object))
