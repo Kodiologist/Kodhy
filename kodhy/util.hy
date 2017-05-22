@@ -158,6 +158,9 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (.remove-unused-categories col.cat :inplace T)))
   d)
 
+(defn cols2map [d k-col v-col]
+  (geti (.set-index (getl d : [k-col v-col]) k-col) : 0))
+
 (defn rd [a1 &optional a2]
 "Round for display. Takes just a number, array, Series, DataFrame,
 or other collection, or both a number of digits to round to and
