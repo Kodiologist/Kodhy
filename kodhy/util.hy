@@ -735,7 +735,7 @@ instead of calling `f` or consulting the existing cache."
   (_R-setup)
   (.get _Rproc expr))
 
-(defn R-call [fname &rest args &kwonly [print-it True] &kwargs kwargs]
+(defn R-call [fn-expr &rest args &kwonly [print-it True] &kwargs kwargs]
   (import [collections [OrderedDict]])
   (_R-setup)
   (setv arg-string "")
@@ -774,7 +774,7 @@ instead of calling `f` or consulting the existing cache."
       (+= arg-string (+ (first a) " = ")))
     (+= arg-string expr))
   ((if print-it print identity)
-    (.run _Rproc (.format "Kodhy_out = {}({})" fname arg-string)))
+    (.run _Rproc (.format "Kodhy_out = ({})({})" fn-expr arg-string)))
   (.get _Rproc "Kodhy_out"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
