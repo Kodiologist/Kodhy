@@ -746,7 +746,19 @@ instead of calling `f` or consulting the existing cache."
       (setv expr (second value))
       (do
         (setv expr (+ "Kodhy_arg_" (str i)))
-        (.assign _Rproc expr value)))
+        (.assign _Rproc expr value)
+        (when (in "DataFrame" (str (type value)))
+          ; Make sure each Categorical Series becomes a factor, with
+          ; the correct levels.
+          (for [j (range (second value.shape))]
+            (when (in "category" (str (get value.dtypes j)))
+              (setv v (geti value : j))
+              (unless (all (map string? v.cat.categories))
+                (raise (ValueError "Only string levels are allowed in Categoricals")))
+              (.run _Rproc (.format
+                "{}[,{}] = factor({}[,{}], levels = c({}))"
+                expr (inc j) expr (inc j)
+                (.join "," (map double-quote v.cat.categories)))))))))
 ;    (if (in "DataFrame" (str (type value)))
 ;      (do
 ;        ; Work around a bug in Pyper where large DataFrames don't
