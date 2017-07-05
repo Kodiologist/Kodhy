@@ -163,34 +163,41 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 (defn cols2map [d k-col v-col]
   (geti (.set-index (getl d : [k-col v-col]) k-col) : 0))
 
-(defn rd [a1 &optional a2]
-"Round for display. Takes just a number, array, Series, DataFrame,
-or other collection, or both a number of digits to round to and
-such an object."
+(defn -number-format [x f]
   (import [numpy :as np] [pandas :as pd])
-  (setv [x digits] (if (is a2 None) [a1 3] [a2 a1]))
   (cond
     [(instance? pd.DataFrame x) (do
       (setv x (.copy x))
       (for [r (range (first x.shape))]
         (for [c (range (second x.shape))]
-          (when (float? (geti x r c))
-            (setv (geti x r c) (round (geti x r c) digits)))))
+          (setv (geti x r c) (-number-format (geti x r c) f))))
       x)]
    [(instance? pd.Series x) (do
      (setv x (.copy x))
      (for [i (range (len x))]
-       (when (float? (geti x i))
-         (setv (geti x i) (round (geti x i) digits))))
+         (setv (geti x i) (-number-format (geti x i) f)))
      x)]
    [(instance? np.ndarray x)
-     (np.round x digits)]
+     (f x)]
    [(coll? x)
-    ((type x) (amap (rd digits it) x))]
-   [(float? x)
-     (round x digits)]
+    ((type x) (amap (-number-format it f) x))]
+   [(numeric? x)
+     (f x)]
    [T
      x]))
+
+(defn rd [a1 &optional a2]
+"Round for display. Takes just a number, array, Series, DataFrame,
+or other collection, or both a number of digits to round to and
+such an object."
+  (import [numpy :as np])
+  (setv [x digits] (if (is a2 None) [a1 3] [a2 a1]))
+  (-number-format x (fn [v] (np.round v digits))))
+
+(defn thousep [x]
+  (import [numpy :as np])
+  (setv vec-f (np.vectorize (fn [v] (format v ","))))
+  (-number-format x (fn [v] (if (instance? np.ndarray v) (vec-f v) (format v ",")))))
 
 (defn with-1o-interacts [m &optional column-names]
 "Given a data matrix m, return a matrix with a new column
