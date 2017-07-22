@@ -13,6 +13,14 @@
     (setv p (.format "is_{}" (cut p None -1))))
   p)
 
+(deftag p [expr]
+  ; Pun.
+  ; #p a  =>  {"a" a}
+  ; #p [a b c]  =>  {"a" a  "b" b  "c" c}
+  (when (symbol? expr)
+    (setv expr [expr]))
+  (HyDict (sum (list-comp [(string x) x] [x expr]) [])))
+
 (defn implicit-progn [list-of-forms]
   (if (= (len list-of-forms) 1)
     (first list-of-forms)
