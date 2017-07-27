@@ -13,6 +13,9 @@
     (setv p (.format "is_{}" (cut p None -1))))
   p)
 
+(defmacro incf [expr]
+  `(+= ~expr 1))
+
 (deftag p [expr]
   ; Pun.
   ; #p a  =>  {"a" a}
