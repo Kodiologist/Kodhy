@@ -405,6 +405,9 @@ without newlines outside string literals."
   (import itertools)
   (itertools.islice (iter-with-prev iterable) 1 None))
 
+(defn c+1 [counter key]
+  (+= (get counter key) 1))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
