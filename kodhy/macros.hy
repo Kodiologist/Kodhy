@@ -21,11 +21,6 @@
     (setv expr [expr]))
   (HyDict (sum (list-comp [(string x) x] [x expr]) [])))
 
-(defn implicit-progn [list-of-forms]
-  (if (= (len list-of-forms) 1)
-    (first list-of-forms)
-    `(do ~@list-of-forms)))
-
 (defmacro lc [vars a1 &optional a2]
 "A more Lispy syntax for list comprehensions.
     (lc [x (range 10)] (str x))
