@@ -84,7 +84,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 
 (defn pds-from-pairs [l &kwargs kwargs]
   (import [pandas :as pd])
-  (apply pd.Series [(amap (second it) l) (amap (first it) l)] kwargs))
+  (pd.Series (amap (second it) l) (amap (first it) l) #** kwargs))
 
 (defn pd-posix-time [series]
   (import [numpy :as np])
@@ -141,7 +141,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   result)
 
 (defn cbind [&rest args]
-  (apply cbind-join (+ (, "outer") args)))
+  (cbind-join "outer" #* args))
 
 (defn df-from-pairs [l]
   (import [pandas :as pd])
@@ -205,7 +205,7 @@ for each first-order interaction. Constant columns are removed."
   (import [numpy :as np] [itertools [combinations]])
   (when column-names
     (assert (= (len column-names) (second m.shape))))
-  (setv [new-names new-cols] (apply zip (filt
+  (setv [new-names new-cols] (zip #* (filt
     (not (.all (= (second it) (first (second it)))))
     (lc [[v1 v2] (combinations (range (second m.shape)) 2)] (,
       (when column-names
@@ -265,7 +265,7 @@ for each first-order interaction. Constant columns are removed."
     (setv df (.set-index df (first df.columns))))
   (for [[catcol meta] (.items (.get j "categories" {}))]
     (setv (getl df : catcol)
-      (apply .astype [(getl df : catcol) "category"] meta)))
+      (.astype (getl df : catcol) "category" #** meta)))
   df)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -389,7 +389,7 @@ without newlines outside string literals."
   r)
 
 (defn by-ns [n iterable]
-  (apply zip (* [(iter iterable)] n)))
+  (zip #* (* [(iter iterable)] n)))
 (defn by-2s [iterable]
   (by-ns 2 iterable))
 
@@ -417,7 +417,7 @@ without newlines outside string literals."
   (when encoding
     (import codecs)
     (setv f codecs.open))
-  (with [o (apply f [name] (dict (+
+  (with [o (f name #** (dict (+
       (if (none? mode)      [] [(, "mode" mode)])
       (if (none? encoding)  [] [(, "encoding" encoding)])
       (if (none? buffering) [] [(, "buffering" buffering)]))))]
@@ -428,7 +428,7 @@ without newlines outside string literals."
   (when encoding
     (import codecs)
     (setv f codecs.open))
-  (with [o (apply f [name mode] (dict (+
+  (with [o (f name mode #** (dict (+
       (if (none? encoding)  [] [(, "encoding" encoding)])
       (if (none? buffering) [] [(, "buffering" buffering)]))))]
     (o.write content)))
@@ -461,12 +461,12 @@ without newlines outside string literals."
           ((type x) (lc [[k v] (.items x)] (, k (recursive-subst v))))
           (lc [v x] (recursive-subst v))))
       x))
-  (setv json-str (apply json.dumps [(recursive-subst o)] kwargs))
+  (setv json-str (json.dumps (recursive-subst o) #** kwargs))
   (setv (get kwargs "indent") None)
   (setv (get kwargs "separators") (, ", " ": "))
   (for [[my-id x] (.items substituted-parts)]
     (setv json-str (.replace json-str (+ "\"" my-id "\"")
-      (.rstrip (apply json.dumps [x] kwargs))
+      (.rstrip (json.dumps x #** kwargs))
       1)))
   json-str)
 
@@ -828,16 +828,15 @@ like a histogram. Missing values are silently ignored."
   ; Now add the visible markers.
   (unless (in "color" kwargs)
     (setv (get kwargs "color") "black"))
-  (.add-collection ax (apply PatchCollection
-    [(if (.pop kwargs "rect" F)
+  (.add-collection ax (PatchCollection #** kwargs
+    (if (.pop kwargs "rect" F)
       (lc [[x0 y0] (zip x y)] (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))
-      (lc [[x0 y0] (zip x y)] (plt.Circle (, x0 y0) (/ diam 2))))]
-    kwargs)))
+      (lc [[x0 y0] (zip x y)] (plt.Circle (, x0 y0) (/ diam 2)))))))
 
 (defn rectplot [xs &optional [diam 1] ax &kwargs kwargs]
 "`dotplot` using rectangles instead of circles."
   (setv (get kwargs "rect") T)
-  (apply dotplot [xs diam ax] kwargs))
+  (dotplot xs diam ax #** kwargs))
 
 (defn density-plot [xs &optional bw lo hi [steps 257] ax &kwargs kwargs]
   ; The default `steps` is chosen to be 1 plus a power of 2.
@@ -858,4 +857,4 @@ like a histogram. Missing values are silently ignored."
     (.set-visible (get ax.spines side) F))
   (.tick-params ax :left F :labelleft F)
 
-  (apply .plot [ax test-points (kde test-points)] kwargs))
+  (.plot ax test-points (kde test-points) #** kwargs))

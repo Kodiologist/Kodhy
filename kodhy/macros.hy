@@ -150,7 +150,7 @@ The value of the whole expression is that provided by 'ret' or
 (defmacro retf [block-name &optional [value 'None]]
   `(do
     (import [kodhy.util [_KodhyBlockReturn]])
-    (raise (apply _KodhyBlockReturn [~block-name ~value]))))
+    (raise (_KodhyBlockReturn ~block-name ~value))))
 
 (defn recur-sym-replace [expr f] (cond
   ; Recursive symbol replacement.
