@@ -160,8 +160,12 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (.remove-unused-categories col.cat :inplace T)))
   d)
 
-(defn cols2map [d k-col v-col]
-  (geti (.set-index (getl d : [k-col v-col]) k-col) : 0))
+(defn cols2map [d k-col v-col &optional keep]
+  (setv d (getl d : [k-col v-col]))
+  (when keep
+    (setv d (.drop-duplicates d :keep keep)))
+  (setv d (.set-index d k-col :verify-integrity (not keep)))
+  (geti d : 0))
 
 (defn -number-format [x f]
   (import [numpy :as np] [pandas :as pd])
