@@ -345,13 +345,11 @@ without newlines outside string literals."
 
 (defn all-unique? [l]
   (setv seen (set))
-  (setv retv True)
   (for [x l]
     (when (in x seen)
-      (setv retv False)
-      (break))
+      (return False))
     (.add seen x))
-  retv)
+  True)
 
 (defn mins [iterable &optional [key (λ it)] comparator-fn [agg-fn min]]
   ; Returns a list of minimizing values of the iterable,
@@ -360,14 +358,13 @@ without newlines outside string literals."
     (import operator)
     (setv comparator-fn operator.le))
   (setv items (list iterable))
-  (if items
-    (do
-      (setv vals (list (map key items)))
-      (setv vm (agg-fn vals))
-      (lc [[item val] (zip items vals)]
-        (comparator-fn val vm)
-        item))
-    []))
+  (unless items
+    (return []))
+  (setv vals (list (map key items)))
+  (setv vm (agg-fn vals))
+  (lc [[item val] (zip items vals)]
+    (comparator-fn val vm)
+    item))
 
 (defn maxes [iterable &optional [key (λ it)]]
   (import operator)
