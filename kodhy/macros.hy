@@ -76,10 +76,10 @@
 
 (defmacro/g! tally [expr args]
   `(do
-    (setv ~g!n (int 0))
+    (setv ~g!n 0)
     (for [it ~args]
       (when ~expr
-        (+= ~g!n (int 1))))
+        (+= ~g!n 1)))
     ~g!n))
 
 (defmacro afind [expr args]
