@@ -74,7 +74,7 @@
       (, (get ~g!pair 0) ~expr))
     (.items ~d))))
 
-(defmacro/g! count [expr args]
+(defmacro/g! tally [expr args]
   `(do
     (setv ~g!n (int 0))
     (for [it ~args]
