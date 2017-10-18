@@ -26,6 +26,26 @@
   ; Identity: (= p1 (odds-ratio-on-p (odds-ratio p1 p2) p2))
   (/ (* oratio p) (+ 1 (* p (- oratio 1)))))
 
+(defn int-binomial [n k]
+  ; `n` choose `k` as an integer. (scipy.special.binom uses floating point.)
+  (when (and (= n 0) (!= k 0))
+    (return 0))
+  (when (= k 0)
+    (return 1))
+  (//
+    (reduce * (seq (- n (dec k)) n))
+    (reduce * (seq 1 k))))
+
+(defn frac-binom-pmf [k n p]
+  ; Probability mass function of the binomial distribution, returning
+  ; a Fraction so long as `p` is a Fraction.
+  ; The output is the probability of exactly `k` successes among `n`
+  ; independent Bernoulli trials, each with probability `p`.
+  (*
+    (int-binomial n k)
+    (** p k)
+    (** (- 1 p) (- n k))))
+
 (defn logit [x]
   (import numpy)
   (numpy.log (/ x (- 1 x))))
