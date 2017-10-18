@@ -633,7 +633,8 @@ instead of calling `f` or consulting the existing cache."
     (sorted :key (λ (get it "time"))
     (amap (with [o (open (os.path.join cache-dir it) "rb")]
       (pickle.load o))
-    (os.listdir cache-dir))))
+    (filt (os.path.isfile it)
+    (os.listdir cache-dir)))))
   (for [item items]
     (print "Basename:" (get item "basename"))
     (print "Date:" (.strftime
