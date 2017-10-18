@@ -63,13 +63,16 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     (if (or (none? v) (instance? pd.Series v))
       v
       (pd.Series (list v)))))
-  (if (none? y)
-    (.rename
-      ((if (in "float" (str x.dtype)) (fn [x] (.sort-index x)) identity)
-        (.value-counts x :sort F :dropna F))
-      (λ (if (pd.isnull it) (str "N/A") it)))
-    (pd.crosstab
-      (.replace x np.nan "~N/A") (.replace y np.nan "~N/A"))))
+  (when (none? y) (return (.rename
+    ((if (in "float" (str x.dtype)) (fn [x] (.sort-index x)) identity)
+      (.value-counts x :sort F :dropna F))
+    (λ (if (pd.isnull it) (str "N/A") it)))))
+  (when (and x.name y.name (= x.name y.name))
+    ; Work around https://github.com/pandas-dev/pandas/issues/6319
+    (setv y (.copy y))
+    (setv y.name (+ y.name "2")))
+  (pd.crosstab
+    (.replace x np.nan "~N/A") (.replace y np.nan "~N/A")))
 
 (defn weighted-choice [l]
 ; The argument should be a list of (weight, object) pairs.
