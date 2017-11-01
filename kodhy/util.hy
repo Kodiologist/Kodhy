@@ -291,8 +291,8 @@ for each first-order interaction. Constant columns are removed."
   (when (get j "first_col_is_row_labels")
     (setv df (.set-index df (first df.columns))))
   (for [[catcol meta] (.items (.get j "categories" {}))]
-    (setv (getl df : catcol)
-      (.astype (getl df : catcol) "category" #** meta)))
+    (setv (getl df : catcol) (.astype (getl df : catcol)
+      (pd.api.types.CategoricalDtype #** meta))))
   df)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
