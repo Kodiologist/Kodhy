@@ -91,8 +91,20 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     ; Work around https://github.com/pandas-dev/pandas/issues/6319
     (setv y (.copy y))
     (setv y.name (+ y.name "2")))
-  (pd.crosstab
+  (setv ct (pd.crosstab
     (.replace x np.nan "~N/A") (.replace y np.nan "~N/A")))
+  ; If x or y are Categorical, reorder the rows and columns of the
+  ; output accordingly.
+  (when (instance? pd.api.types.CategoricalDtype x.dtype)
+    (setv ct (getl ct x.cat.categories)))
+  (when (instance? pd.api.types.CategoricalDtype y.dtype)
+    (setv ct (getl ct : y.cat.categories)))
+  ; Name the index and columns.
+  (when x.name
+    (setv ct.index.name x.name))
+  (when y.name
+    (setv ct.columns.name y.name))
+  ct)
 
 (defn weighted-choice [l]
 ; The argument should be a list of (weight, object) pairs.
