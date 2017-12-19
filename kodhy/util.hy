@@ -672,6 +672,9 @@ instead of calling `f` or consulting the existing cache."
     (print "Date:" (.strftime
       (datetime.datetime.fromtimestamp (get item "time"))
       "%-d %b %Y, %-I:%M:%S %p"))
+    (print (.format "Size: {:,}" (.
+      (os.stat (os.path.join cache-dir (get item "basename")))
+      st_size)))
     (print "Key:" (get item "key"))
     (print))
   None)
