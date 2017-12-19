@@ -135,7 +135,7 @@ The value of the whole expression is that provided by 'ret' or
 'retf', if one of those was used, or the last expression otherwise."
   (setv block-name 'None)
   (when (and body (keyword? (first body)))
-    (setv [block-name body] [(first body) (rest body)]))
+    (setv [block-name body] [(string (first body)) (rest body)]))
   (setv r (gensym))
   `(do (import [kodhy.util [_KodhyBlockReturn]]) (try
     (do ~@body)
@@ -148,9 +148,10 @@ The value of the whole expression is that provided by 'ret' or
         (. ~r value))))))
 
 (defmacro retf [block-name &optional [value 'None]]
+  (assert (keyword? block-name))
   `(do
     (import [kodhy.util [_KodhyBlockReturn]])
-    (raise (_KodhyBlockReturn ~block-name ~value))))
+    (raise (_KodhyBlockReturn ~(string block-name) ~value))))
 
 (defn recur-sym-replace [expr f] (cond
   ; Recursive symbol replacement.

@@ -759,10 +759,6 @@ instead of calling `f` or consulting the existing cache."
 "Return from the innermost 'block'."
   (raise (_KodhyBlockReturn None value)))
 
-(defn ret-from [block-name &optional value]
-"Return from the innermost 'block' with the given name."
-  (raise (_KodhyBlockReturn block-name value)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Interoperability with R
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
