@@ -334,7 +334,7 @@ without newlines outside string literals."
     [(instance? HyDict x)
       (.format "{{{}}}" (.join " " (list (map show-expr x))))]
     [(keyword? x)
-      (+ ":" (keyword->str x))]
+      (+ ":" x.name)]
     [(instance? HySymbol x)
       (str x)]
     [(instance? list x)
@@ -348,13 +348,14 @@ without newlines outside string literals."
 
 (defn keyword->str [x]
   (if (keyword? x)
-    (cut x 2)
+    x.name
     x))
 
 (defn str->keyword [x]
+  (import [hy [HyKeyword]])
   (if (keyword? x)
     x
-    (+ "\ufdd0:" x)))
+    (HyKeyword x)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Lists and other basic data structures
