@@ -119,6 +119,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 
 (defn pds-from-pairs [l &kwargs kwargs]
   (import [pandas :as pd])
+  (setv l (list l))
   (pd.Series (amap (second it) l) (amap (first it) l) #** kwargs))
 
 (defn pd-posix-time [series]
