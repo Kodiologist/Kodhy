@@ -169,8 +169,7 @@ The value of the whole expression is that provided by 'ret' or
 ;  `(fn [x y] ~@body))
 
 (defmacro qw [&rest words]
-"(qw foo bar baz) => ['foo', 'bar', 'baz']
-Caveat: hyphens are transformed to underscores, and *foo* to FOO."
+"(qw foo bar baz) => ['foo', 'bar', 'baz']"
   (HyList (map HyString words)))
 
 (defmacro meth [param-list &rest body]
