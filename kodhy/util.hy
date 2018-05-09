@@ -431,13 +431,13 @@ without newlines outside string literals."
 (defn by-2s [iterable]
   (by-ns 2 iterable))
 
-(defn iter-with-prev (iterable)
+(defn iter-with-prev [iterable]
   (setv prev None)
   (for [item iterable]
     (yield (, prev item))
     (setv prev item)))
 
-(defn iter-with-prev1 (iterable)
+(defn iter-with-prev1 [iterable]
   ; Like iter-with-prev, but skips the first pair, which has
   ; None for the previous value.
   (import itertools)
