@@ -96,9 +96,13 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   ; If x or y are Categorical, reorder the rows and columns of the
   ; output accordingly.
   (when (instance? pd.api.types.CategoricalDtype x.dtype)
-    (setv ct (getl ct x.cat.categories)))
+    (setv cats (+ (list x.cat.categories)
+      (if (in "~N/A" ct.index) ["~N/A"] [])))
+    (setv ct (getl ct cats)))
   (when (instance? pd.api.types.CategoricalDtype y.dtype)
-    (setv ct (getl ct : y.cat.categories)))
+    (setv cats (+ (list y.cat.categories)
+      (if (in "~N/A" ct.columns) ["~N/A"] [])))
+    (setv ct (getl ct : cats)))
   ; Name the index and columns.
   (when x.name
     (setv ct.index.name x.name))
