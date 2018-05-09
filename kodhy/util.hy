@@ -664,9 +664,10 @@ instead of calling `f` or consulting the existing cache."
       (pickle.dump d o pickle.HIGHEST-PROTOCOL)))
   value)
 
-(defn show-cache [&optional [cache-dir _default-cache-dir]]
-"Pretty-print the caches of 'cached-eval' in chronological order."
-  (import pickle os os.path datetime)
+(defn show-cache [&optional [cache-dir _default-cache-dir] [pretty T] [regex ""]]
+"Prints the caches of 'cached-eval' in chronological order."
+  (import re pickle os os.path datetime)
+  (setv regex (re.compile regex))
   (setv items
     (sorted :key (λ (get it "time"))
     (amap (with [o (open (os.path.join cache-dir it) "rb")]
@@ -674,6 +675,11 @@ instead of calling `f` or consulting the existing cache."
     (filt (os.path.isfile it)
     (os.listdir cache-dir)))))
   (for [item items]
+    (unless (.search regex (get item "key"))
+      (continue))
+    (unless pretty
+      (print (get item "basename"))
+      (continue))
     (print "Basename:" (get item "basename"))
     (print "Date:" (.strftime
       (datetime.datetime.fromtimestamp (get item "time"))
