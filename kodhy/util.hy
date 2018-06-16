@@ -630,7 +630,7 @@ and should return a 1D nparray of predictions given x-test."
 "Call `f`, caching the value with the string `key`. If `bypass`
 is provided, its value is written to the cache and returned
 instead of calling `f` or consulting the existing cache."
-  (import pickle hashlib base64 os os.path errno time)
+  (import pickle hashlib base64 os errno time)
 ;  (unless (os.path.exists cache-dir)
 ;    (os.makedirs cache-dir))
   (unless cache-dir
@@ -644,16 +644,12 @@ instead of calling `f` or consulting the existing cache."
   (setv value bypass)
   (setv write-value T)
   (when (none? value)
-    (try
+    (if (os.path.exists path)
       (do
-        (with [o (open path "rb")]
-          (setv value (get (pickle.load o) "value")))
+        (setv value (with [o (open path "rb")]
+          (get (pickle.load o) "value")))
         (setv write-value F))
-      (except [e IOError]
-        (unless (= e.errno errno.ENOENT)
-          (throw)))))
-  (when (none? value)
-    (setv value (f)))
+      (setv value (f))))
   (when write-value
     (setv d {
       "basename" basename
