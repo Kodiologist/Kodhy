@@ -22,16 +22,16 @@
   ; #p [a b c]  =>  {"a" a  "b" b  "c" c}
   (when (symbol? expr)
     (setv expr [expr]))
-  (HyDict (sum (list-comp [(string x) x] [x expr]) [])))
+  (HyDict (+ #* (lfor x expr [(string x) x]))))
 
 (defmacro lc [vars a1 &optional a2]
 "A more Lispy syntax for list comprehensions.
     (lc [x (range 10)] (str x))
     (lc [x (range 10)] (> x 3) (str x))"
-  `(list-comp
-    ~(or a2 a1)
-    ~vars
-    ~@(if a2 [a1] [])))
+  `(lfor
+    ~@vars
+    ~@(if a2 [:if a1] [])
+    ~(or a2 a1)))
 
 (defmacro/g! rmap [arglist &rest expr]
 ; (rmap [[i x] (enumerate "xyzzy")] (setv y (.upper x)) (+ (string i) y))
@@ -46,13 +46,12 @@
 (defmacro amap [expr args]
 "'a' stands for 'anaphoric'."
   `(list (map (fn [it] ~expr) ~args)))
-;  `(list-comp ~expr [it ~args]))  ; The expr doesn't seem to be able to see "it" if it's a (with ...) form.
 
 (defmacro filt [expr args]
   `(list (filter (fn [it] ~expr) ~args)))
 
 (defmacro fmap [gen-expr filter-expr args]
-  `(list-comp ~gen-expr [it ~args] ~filter-expr))
+  `(lfor  it ~args  :if ~filter-expr  ~gen-expr))
 
 (defmacro/g! amap2 [expr args]
 ; (amap2 (+ a b) (range 10))  =>  [1 5 9 13 17]
@@ -118,7 +117,7 @@ value bound to 'it'."
   `(do
     (setv it ~keyform)
     (cond
-      ~@(lc [form clauses]
+      ~@(gfor form clauses
         `[(= it ~(first form))
           ~@(cut form 1)])
       ~@(if extra [extra] []))))
@@ -280,7 +279,7 @@ absolute value of the column `baz`, then by `bar`."
 (defmacro/g! cbind [&rest args]
  `(do
     (import [kodhy.util [cbind-join :as ~g!cj]])
-    (~g!cj "outer" ~@(lc [a args]
+    (~g!cj "outer" ~@(gfor a args
       (if (keyword? a) a.name a)))))
 
 (defmacro cached [expr &optional [bypass 'None] [cache-dir 'None]]
