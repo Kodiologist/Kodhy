@@ -1,5 +1,7 @@
 This repository contains many small functions and macros that I use to write `Hy`_ code. Python 3 and bleeding-edge Hy (Git master) are assumed.
 
+The tests require ``pytest``. Run them by saying ``pytest test``.
+
 License
 ============================================================
 
