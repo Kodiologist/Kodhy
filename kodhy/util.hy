@@ -767,10 +767,10 @@ instead of calling `f` or consulting the existing cache."
 ;; * Support for kodhy.macros
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass _KodhyBlockReturn [Exception] [
-  __init__ (meth [block-name value]
+(defclass _KodhyBlockReturn [Exception]
+  (setv __init__ (meth [block-name value]
     (setv @block-name block-name)
-    (setv @value value))])
+    (setv @value value))))
 
 (defn ret [&optional value]
 "Return from the innermost 'block'."
