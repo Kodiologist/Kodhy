@@ -854,17 +854,18 @@ like a histogram. Missing values are silently ignored."
     [numpy [isnan]])
 
   (setv rows [])
-  (for [x (sorted (filt (and (not (isnan it)) (is-not it None)) xs))]
-    (setv placed F)
+  (for [x (sorted (gfor x xs
+          :if (and (not (isnan x)) (is-not x None)) x))]
     (for [row rows]
       (when (>= (- x (get row -1)) diam)
         (.append row x)
-        (setv placed T)
-        (break)))
-    (unless placed
-      (.append rows [x])))
+        (break))
+      (else
+        (.append rows [x]))))
   (setv x (flatten rows))
-  (setv y (flatten (lc [[n row] (enumerate rows)] (* [(* diam (+ n .5))] (len row)))))
+  (setv y (flatten (gfor
+    [n row] (enumerate rows)
+    (* [(* diam (+ n .5))] (len row)))))
 
   (unless ax
     (setv ax (plt.gca)))
@@ -880,8 +881,10 @@ like a histogram. Missing values are silently ignored."
     (setv (get kwargs "color") "black"))
   (.add-collection ax (PatchCollection #** kwargs
     (if (.pop kwargs "rect" F)
-      (lc [[x0 y0] (zip x y)] (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))
-      (lc [[x0 y0] (zip x y)] (plt.Circle (, x0 y0) (/ diam 2)))))))
+      (lfor  [x0 y0] (zip x y)
+        (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))
+      (lfor  [x0 y0] (zip x y)
+        (plt.Circle (, x0 y0) (/ diam 2)))))))
 
 (defn rectplot [xs &optional [diam 1] ax &kwargs kwargs]
 "`dotplot` using rectangles instead of circles."
