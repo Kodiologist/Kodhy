@@ -189,9 +189,6 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     (setv (. result index) index))
   result)
 
-(defn cbind [&rest args]
-  (cbind-join "outer" #* args))
-
 (defn df-from-pairs [l]
   (import [pandas :as pd])
   (setv d (pd.DataFrame (lc [row l] (lc [[_ v] row] v))))
