@@ -22,7 +22,7 @@
   ; #p [a b c]  =>  {"a" a  "b" b  "c" c}
   (when (symbol? expr)
     (setv expr [expr]))
-  (HyDict (+ #* (lfor x expr [(string x) x]))))
+  (HyDict (+ #* (lfor x expr [(str x) x]))))
 
 (defmacro lc [vars a1 &optional a2]
 "A more Lispy syntax for list comprehensions.
@@ -34,7 +34,7 @@
     ~(or a2 a1)))
 
 (defmacro/g! rmap [arglist &rest expr]
-; (rmap [[i x] (enumerate "xyzzy")] (setv y (.upper x)) (+ (string i) y))
+; (rmap [[i x] (enumerate "xyzzy")] (setv y (.upper x)) (+ (str i) y))
 ;   => ["0X" "1Y" "2Z" "3Z" "4Y"]
   (setv [lvalue args] arglist)
   `(list (map
@@ -134,7 +134,7 @@ The value of the whole expression is that provided by 'ret' or
 'retf', if one of those was used, or the last expression otherwise."
   (setv block-name 'None)
   (when (and body (keyword? (first body)))
-    (setv [block-name body] [(string (first body)) (rest body)]))
+    (setv [block-name body] [(str (first body)) (rest body)]))
   (setv r (gensym))
   `(do (import [kodhy.util [_KodhyBlockReturn]]) (try
     (do ~@body)
@@ -150,7 +150,7 @@ The value of the whole expression is that provided by 'ret' or
   (assert (keyword? block-name))
   `(do
     (import [kodhy.util [_KodhyBlockReturn]])
-    (raise (_KodhyBlockReturn ~(string block-name) ~value))))
+    (raise (_KodhyBlockReturn ~(str block-name) ~value))))
 
 (defn recur-sym-replace [expr f] (cond
   ; Recursive symbol replacement.
