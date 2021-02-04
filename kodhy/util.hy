@@ -843,7 +843,7 @@ instead of calling `f` or consulting the existing cache."
 ;; * Plotting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn dotplot [xs &optional [diam 1] ax &kwargs kwargs]
+(defn dotplot [xs &optional [diam 1] group ax &kwargs kwargs]
 "A plot of 1D data where each value is represented as a circle,
 and circles that would overlap are stacked vertically, a bit
 like a histogram. Missing values are silently ignored."
@@ -853,19 +853,33 @@ like a histogram. Missing values are silently ignored."
     [matplotlib.collections [PatchCollection]]
     [numpy [isnan]])
 
-  (setv rows [])
-  (for [x (sorted (gfor x xs
-          :if (and (not (isnan x)) (is-not x None)) x))]
-    (for [row rows]
+  (when (none? group)
+    (setv group (* (, True) (len xs))))
+  (assert (= (len group) (len xs)))
+  (setv levels (unique group))
+  (setv group-vert-space (* 3 diam))
+
+  (setv rows (dfor  l levels  [l []]))
+  (for [[x g] (sorted (gfor
+          [x g] (zip xs group)
+          :if (and (not (isnan x)) (is-not x None)) [x g]))]
+    (for [row (get rows g)]
       (when (>= (- x (get row -1)) diam)
         (.append row x)
         (break))
       (else
-        (.append rows [x]))))
-  (setv x (flatten rows))
-  (setv y (flatten (gfor
-    [n row] (enumerate rows)
-    (* [(* diam (+ n .5))] (len row)))))
+        (.append (get rows g) [x]))))
+
+  (setv x (flatten (.values rows)))
+
+  (setv yg (lfor  rs (.values rows)  (flatten (gfor
+    [n row] (enumerate rs)
+    (* [(* diam (+ n .5))] (len row))))))
+  (setv ybumps [0])
+  (for [i (range 1 (len yg))]
+    (.append ybumps (+ (max (get yg (dec i))) group-vert-space))
+    (setv (get yg i) (lfor  v (get yg i)  (+ v (get ybumps -1)))))
+  (setv y (flatten yg))
 
   (unless ax
     (setv ax (plt.gca)))
@@ -884,7 +898,13 @@ like a histogram. Missing values are silently ignored."
       (lfor  [x0 y0] (zip x y)
         (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))
       (lfor  [x0 y0] (zip x y)
-        (plt.Circle (, x0 y0) (/ diam 2)))))))
+        (plt.Circle (, x0 y0) (/ diam 2))))))
+
+  ; Add the level labels.
+  (when (> (len levels) 1)
+    (for [[i level] (enumerate levels)]
+      (.text ax (- (min x) (* 2 diam)) (get ybumps i) (str level)
+        :horizontalalignment "right"))))
 
 (defn rectplot [xs &optional [diam 1] ax &kwargs kwargs]
 "`dotplot` using rectangles instead of circles."
