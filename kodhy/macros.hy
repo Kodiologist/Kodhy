@@ -276,6 +276,14 @@ absolute value of the column `baz`, then by `bar`."
     (geti ~df-sym (. (.sort-values ~sorting-df (list (. ~sorting-df columns))) index))))
 ; ~pd
 
+(defmacro wcby [df by &rest body]
+  (setv df-sym (gensym)  it-sym (gensym))
+  `(do
+    (setv ~df-sym ~df)
+    (.apply
+      (.groupby ~df-sym ~(dollar-replace df-sym by))
+      (fn [~it-sym] ~@(dollar-replace it-sym body)))))
+
 (defmacro/g! cbind [&rest args]
  `(do
     (import [kodhy.util [cbind-join :as ~g!cj]])
