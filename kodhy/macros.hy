@@ -16,7 +16,7 @@
 (defmacro incf [expr]
   `(+= ~expr 1))
 
-(deftag p [expr]
+(defmacro "#p" [expr]
   ; Pun.
   ; #p a  =>  {"a" a}
   ; #p [a b c]  =>  {"a" a  "b" b  "c" c}
