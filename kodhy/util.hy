@@ -72,12 +72,12 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (import [numpy :as np])
   (np.mean (np.abs (- v1 v2))))
 
-(defn jitter [v &optional [factor 100]]
+(defn jitter [v [factor 100]]
   (import [numpy :as np])
   (setv b (/ (- (.max v) (.min v)) (* 2 factor)))
   (+ v (np.random.uniform (- b) b (len v))))
 
-(defn valcounts [x &optional y]
+(defn valcounts [x [y None]]
   (import [pandas :as pd] [numpy :as np])
   (setv [x y] (rmap [v [x y]]
     (if (or (none? v) (instance? pd.Series v))
@@ -121,7 +121,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (break)))
   x)
 
-(defn pds-from-pairs [l &kwargs kwargs]
+(defn pds-from-pairs [l #** kwargs]
   (import [pandas :as pd])
   (setv l (list l))
   (pd.Series (amap (second it) l) (amap (first it) l) #** kwargs))
@@ -137,7 +137,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (.get f-or-dict it it))
     series.cat.categories)))
 
-(defn recategorize [x &rest kv]
+(defn recategorize [x #* kv]
   (import [pandas :as pd])
   (setv kv (list (partition kv)))
   (setv d (dict kv))
@@ -150,7 +150,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 ;; * Matrices and DataFrames
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn cbind-join [join &rest args]
+(defn cbind-join [join #* args]
   (import [pandas :as pd])
   (setv args (list args))
   (setv index None)
@@ -195,7 +195,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (setv d.columns (amap (first it) (first l)))
   d)
 
-(defn drop-unused-cats [d &optional [inplace F]]
+(defn drop-unused-cats [d [inplace F]]
   ; Drops unused categories from all categorical columns.
   ; Can also be applied to a Series.
   (import [pandas :as pd])
@@ -206,7 +206,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (.remove-unused-categories col.cat :inplace T)))
   d)
 
-(defn cols2map [d k-col v-col &optional keep]
+(defn cols2map [d k-col v-col [keep None]]
   (setv d (getl d : [k-col v-col]))
   (when keep
     (setv d (.drop-duplicates d :keep keep)))
@@ -236,7 +236,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
    [T
      x]))
 
-(defn rd [a1 &optional a2]
+(defn rd [a1 [a2 None]]
 "Round for display. Takes just a number, array, Series, DataFrame,
 or other collection, or both a number of digits to round to and
 such an object."
@@ -249,7 +249,7 @@ such an object."
   (setv vec-f (np.vectorize (fn [v] (format v ","))))
   (-number-format x (fn [v] (if (instance? np.ndarray v) (vec-f v) (format v ",")))))
 
-(defn with-1o-interacts [m &optional column-names]
+(defn with-1o-interacts [m [column-names None]]
 "Given a data matrix m, return a matrix with a new column
 for each first-order interaction. Constant columns are removed."
   (import [numpy :as np] [itertools [combinations]])
@@ -322,7 +322,7 @@ for each first-order interaction. Constant columns are removed."
 ;; * Strings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn cat [&rest args &kwargs kwargs]
+(defn cat [#* args #** kwargs]
   (.join
     (or (.get kwargs "sep") "")
     (lc [x args] x (string x))))
@@ -374,13 +374,13 @@ without newlines outside string literals."
 (defn concat [ll]
   (reduce (fn [accum x] (+ accum x)) ll []))
 
-(defn merge-dicts [&rest ds]
+(defn merge-dicts [#* ds]
   (setv out {})
   (for [d ds]
     (.update out d))
   out)
 
-(defn seq [lo hi &optional [step 1]]
+(defn seq [lo hi [step 1]]
   (list (range lo (+ hi step) step)))
 
 (defn shift [l]
@@ -398,7 +398,7 @@ without newlines outside string literals."
     (.add seen x))
   True)
 
-(defn mins [iterable &optional [key (λ it)] comparator-fn [agg-fn min]]
+(defn mins [iterable [key (λ it)] [comparator-fn None] [agg-fn min]]
   ; Returns a list of minimizing values of the iterable,
   ; in their original order.
   (unless comparator-fn
@@ -413,7 +413,7 @@ without newlines outside string literals."
     (comparator-fn val vm)
     item))
 
-(defn maxes [iterable &optional [key (λ it)]]
+(defn maxes [iterable [key (λ it)]]
   (import operator)
   (mins iterable key operator.ge max))
 
@@ -429,7 +429,7 @@ without newlines outside string literals."
     [T
       (get obj (get keys 0))]))
 
-(defn pairs [&rest a]
+(defn pairs [#* a]
   (setv a (list a))
   (setv r [])
   (while a
@@ -460,7 +460,7 @@ without newlines outside string literals."
 ;; * Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn slurp [name &optional mode encoding buffering]
+(defn slurp [name [mode None] [encoding None] [buffering None]]
   (setv f open)
   (when encoding
     (import codecs)
@@ -471,7 +471,7 @@ without newlines outside string literals."
       (if (none? buffering) [] [(, "buffering" buffering)]))))]
     (o.read)))
 
-(defn barf [name content &optional [mode "w"] encoding buffering]
+(defn barf [name content [mode "w"] [encoding None] [buffering None]]
   (setv f open)
   (when encoding
     (import codecs)
@@ -485,7 +485,7 @@ without newlines outside string literals."
 ;; * JSON
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn json-dumps-pretty [o &kwargs kwargs]
+(defn json-dumps-pretty [o #** kwargs]
   ; Like json.dumps, but arrays or objects of atomic values are
   ; printed without internal indents, and with different
   ; option defaults.
@@ -522,7 +522,7 @@ without newlines outside string literals."
 ;; * Cross-validation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn kfold-cv-pred [x y f &optional [n-folds 10] [shuffle T] [random-state None] folds]
+(defn kfold-cv-pred [x y f [n-folds 10] [shuffle T] [random-state None] [folds None]]
 "Return a np of predictions of y given x using f. x is expected to be
 a numpy matrix, not a pandas DataFrame.
 
@@ -562,7 +562,7 @@ and should return a 1D nparray of predictions given x-test."
       it))
     bins))
 
-(defn bin-labels [labels &optional [n-bins 10] max-bin-size]
+(defn bin-labels [labels [n-bins 10] [max-bin-size None]]
 ; A routine to prepare input for choose-labeled-cv-folds.
 ;
 ; Finds ways to sort a list of label objects (which is
@@ -632,7 +632,7 @@ and should return a 1D nparray of predictions given x-test."
   (import os.path)
   (os.path.join (os.path.expanduser "~") ".daylight" "py-cache")))
 
-(defn cached-eval [key f &optional bypass cache-dir]
+(defn cached-eval [key f [bypass None] [cache-dir None]]
 "Call `f`, caching the value with the string `key`. If `bypass`
 is provided, its value is written to the cache and returned
 instead of calling `f` or consulting the existing cache."
@@ -666,7 +666,7 @@ instead of calling `f` or consulting the existing cache."
       (pickle.dump d o pickle.HIGHEST-PROTOCOL)))
   value)
 
-(defn show-cache [&optional [cache-dir _default-cache-dir] [pretty T] [regex ""]]
+(defn show-cache [[cache-dir _default-cache-dir] [pretty T] [regex ""]]
 "Prints the caches of 'cached-eval' in chronological order."
   (import re pickle os os.path datetime)
   (setv regex (re.compile regex))
@@ -701,9 +701,9 @@ instead of calling `f` or consulting the existing cache."
 (defn tversky-format-s [s]
   (amap (.format "s{:03d}" it) s))
 
-(defn unpack-tversky [db-path &optional
+(defn unpack-tversky [db-path
     [include-incomplete T]
-    exclude-sns]
+    [exclude-sns None]]
   (import sqlite3 [pandas :as pd])
   (try
     (do
@@ -769,7 +769,7 @@ instead of calling `f` or consulting the existing cache."
     (setv @block-name block-name)
     (setv @value value))))
 
-(defn ret [&optional value]
+(defn ret [[value None]]
 "Return from the innermost 'block'."
   (raise (_KodhyBlockReturn None value)))
 
@@ -797,7 +797,7 @@ instead of calling `f` or consulting the existing cache."
   (_R-setup)
   (.get _Rproc expr))
 
-(defn R-call [fn-expr &rest args &kwonly [print-it True] &kwargs kwargs]
+(defn R-call [fn-expr #* args [print-it True] #** kwargs]
   (import [collections [OrderedDict]])
   (_R-setup)
   (setv arg-string "")
@@ -843,7 +843,7 @@ instead of calling `f` or consulting the existing cache."
 ;; * Plotting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn dotplot [xs &optional [diam 1] group ax &kwargs kwargs]
+(defn dotplot [xs [diam 1] [group None] [ax None] #** kwargs]
 "A plot of 1D data where each value is represented as a circle,
 and circles that would overlap are stacked vertically, a bit
 like a histogram. Missing values are silently ignored."
@@ -906,12 +906,12 @@ like a histogram. Missing values are silently ignored."
       (.text ax (- (min x) (* 2 diam)) (get ybumps i) (str level)
         :horizontalalignment "right"))))
 
-(defn rectplot [xs &optional [diam 1] ax &kwargs kwargs]
+(defn rectplot [xs [diam 1] [ax None] #** kwargs]
 "`dotplot` using rectangles instead of circles."
   (setv (get kwargs "rect") T)
   (dotplot xs diam ax #** kwargs))
 
-(defn density-plot [xs &optional bw lo hi [steps 257] ax &kwargs kwargs]
+(defn density-plot [xs [bw None] [lo None] [hi None] [steps 257] [ax None] #** kwargs]
   ; The default `steps` is chosen to be 1 plus a power of 2.
 
   (import

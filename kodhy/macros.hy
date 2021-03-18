@@ -24,7 +24,7 @@
     (setv expr [expr]))
   (HyDict (+ #* (lfor x expr [(str x) x]))))
 
-(defmacro lc [vars a1 &optional a2]
+(defmacro lc [vars a1 [a2 None]]
 "A more Lispy syntax for list comprehensions.
     (lc [x (range 10)] (str x))
     (lc [x (range 10)] (> x 3) (str x))"
@@ -33,7 +33,7 @@
     ~@(if a2 [:if a1] [])
     ~(or a2 a1)))
 
-(defmacro/g! rmap [arglist &rest expr]
+(defmacro/g! rmap [arglist #* expr]
 ; (rmap [[i x] (enumerate "xyzzy")] (setv y (.upper x)) (+ (str i) y))
 ;   => ["0X" "1Y" "2Z" "3Z" "4Y"]
   (setv [lvalue args] arglist)
@@ -86,14 +86,14 @@
     (next (filter (fn [it] ~expr) ~args))
     (except [StopIteration] (raise (ValueError "afind: no matching value found")))))
 
-(defmacro afind-or [expr args &optional default]
+(defmacro afind-or [expr args [default None]]
 "The default expression 'default' is evaluated (and its value returned)
 if no matching value is found."
   `(try
     (next (filter (fn [it] ~expr) ~args))
     (except [StopIteration] ~default)))
 
-(defmacro whenn [expr &rest body]
+(defmacro whenn [expr #* body]
 "Analogous to Haskell's liftM for Maybe. Evaluates
 'expr' and, if its value is not None, evaluates 'body' with the
 value bound to 'it'."
@@ -102,13 +102,13 @@ value bound to 'it'."
     (when (is-not it None)
       ~@body)))
 
-(defmacro case [keyform &rest clauses]
+(defmacro case [keyform #* clauses]
 ; (case x [:a 1] [:b 2])
 ; Implicit progns are provided.
 ; Returns None if no keys match.
   (case-f keyform clauses None))
 
-(defmacro ecase [keyform &rest clauses]
+(defmacro ecase [keyform #* clauses]
 ; Like 'case', but throws LookupError if no case matches.
   (case-f keyform clauses
     '[True (raise (LookupError (+ "ecase: No match: " (repr it))))]))
@@ -122,10 +122,10 @@ value bound to 'it'."
           ~@(cut form 1)])
       ~@(if extra [extra] []))))
 
-(defmacro replicate [n &rest body]
+(defmacro replicate [n #* body]
   `(list (map (fn [_] ~@body) (range ~n))))
 
-(defmacro block [&rest body]
+(defmacro block [#* body]
 "Evaluate the given expressions while allowing you to jump out
 with kodhy.util.ret and kodhy.util.retf. If the first element of
 'body' is a keyword, it becomes the name of the block.
@@ -146,7 +146,7 @@ The value of the whole expression is that provided by 'ret' or
         ; Otherwise, we can stop here. Return the return value.
         (. ~r value))))))
 
-(defmacro retf [block-name &optional [value 'None]]
+(defmacro retf [block-name [value 'None]]
   (assert (keyword? block-name))
   `(do
     (import [kodhy.util [_KodhyBlockReturn]])
@@ -161,21 +161,21 @@ The value of the whole expression is that provided by 'ret' or
   [True
     expr]))
 
-(defmacro λ [&rest body]
+(defmacro λ [#* body]
   `(fn [it] ~@body))
 
-;(defmacro λ2 [&rest body]
+;(defmacro λ2 [#* body]
 ;  `(fn [x y] ~@body))
 
-(defmacro qw [&rest words]
+(defmacro qw [#* words]
 "(qw foo bar baz) => ['foo', 'bar', 'baz']"
   (HyList (map HyString words)))
 
-(defmacro meth [param-list &rest body]
+(defmacro meth [param-list #* body]
 "(meth [foo] (+ @bar foo))  =>  (fn [self foo] (+ self.bar foo))"
   (meth-f param-list body))
 
-(defmacro cmeth [param-list &rest body]
+(defmacro cmeth [param-list #* body]
   `(classmethod ~(meth-f param-list body)))
 
 (defn meth-f [param-list body]
@@ -191,7 +191,7 @@ The value of the whole expression is that provided by 'ret' or
     [True
       sym])))))
 
-(defmacro getl [obj key1 &optional key2 key3]
+(defmacro getl [obj key1 [key2 None] [key3 None]]
 ; Given a pd.DataFrame 'mtcars':
 ;    (getl mtcars "4 Drive" "hp")    =>  the cell "4 Drive", "hp"
 ;    (getl mtcars "4 Drive")         =>  the row "4 Drive"
@@ -199,7 +199,7 @@ The value of the whole expression is that provided by 'ret' or
 ;    (getl mtcars : (: "cyl" "hp"))  =>  columns "cyl" through "hp"
   (panda-get 'loc obj key1 key2 key3))
 
-(defmacro geti [obj key1 &optional key2 key3]
+(defmacro geti [obj key1 [key2 None] [key3 None]]
   (panda-get 'iloc obj key1 key2 key3))
 
 (setv COLON :)
@@ -208,7 +208,7 @@ The value of the whole expression is that provided by 'ret' or
 ;     ($ mtcars hp)            =>  the column "hp"
   (panda-get 'loc obj COLON (HyString key)))
 
-(defmacro geta [obj &rest keys]
+(defmacro geta [obj #* keys]
 "For numpy arrays."
   `(get ~obj (, ~@(map parse-key keys))))
 
@@ -225,7 +225,7 @@ The value of the whole expression is that provided by 'ret' or
     [True
       key]))
 
-(defn panda-get [attr obj key1 &optional key2 key3]
+(defn panda-get [attr obj key1 [key2 None] [key3 None]]
   `(get (. ~obj ~attr) ~(cond
     [(is-not key3 None) `(, ~(parse-key key1) ~(parse-key key2) ~(parse-key key3))]
     [(is-not key2 None) `(, ~(parse-key key1) ~(parse-key key2))]
@@ -239,7 +239,7 @@ The value of the whole expression is that provided by 'ret' or
         (panda-get 'loc df-sym COLON (HyString (cut sym 1))))
       sym))))
 
-(defmacro wc [df &rest body]
+(defmacro wc [df #* body]
 "With columns.
     (wc df (+ $a $b))  =>  (+ ($ df a) ($ df b))
 The replacement is recursive.
@@ -248,14 +248,14 @@ The replacement is recursive.
   (setv body (dollar-replace df-sym body))
   `(do (setv ~df-sym ~df) ~@body))
 
-(defmacro ss [df &rest body]
+(defmacro ss [df #* body]
 "Subset. Evaluate `body` like `wc`, which should produce a
 boolean vector. Return `df` indexed by the boolean vector."
   (setv df-sym (gensym))
   (setv body (dollar-replace df-sym body))
   `(do (setv ~df-sym ~df) (get ~df-sym ~@body)))
 
-(defmacro ssi [df &rest body]
+(defmacro ssi [df #* body]
 "Subset index. Like `ss`, but returns a list of the indices that
 matched."
   (setv df-sym (gensym))
@@ -264,7 +264,7 @@ matched."
     (setv ~df-sym ~df)
     (.tolist (. (get ~df-sym ~@body) index))))
 
-(defmacro ordf [df &rest exprs]
+(defmacro ordf [df #* exprs]
 "Order data frame. (ordf d (.abs $baz) $bar) sorts first by the
 absolute value of the column `baz`, then by `bar`."
   (setv [df-sym pd sorting-df] [(gensym) (gensym) (gensym)])
@@ -276,7 +276,7 @@ absolute value of the column `baz`, then by `bar`."
     (geti ~df-sym (. (.sort-values ~sorting-df (list (. ~sorting-df columns))) index))))
 ; ~pd
 
-(defmacro wcby [df by &rest body]
+(defmacro wcby [df by #* body]
   (setv df-sym (gensym)  it-sym (gensym))
   `(do
     (setv ~df-sym ~df)
@@ -284,13 +284,13 @@ absolute value of the column `baz`, then by `bar`."
       (.groupby ~df-sym ~(dollar-replace df-sym by))
       (fn [~it-sym] ~@(dollar-replace it-sym body)))))
 
-(defmacro/g! cbind [&rest args]
+(defmacro/g! cbind [#* args]
  `(do
     (import [kodhy.util [cbind-join :as ~g!cj]])
     (~g!cj "outer" ~@(gfor a args
       (if (keyword? a) a.name a)))))
 
-(defmacro cached [expr &optional [bypass 'None] [cache-dir 'None]]
+(defmacro cached [expr [bypass 'None] [cache-dir 'None]]
   `(do
      (import kodhy.util)
      (kodhy.util.cached-eval
@@ -299,7 +299,7 @@ absolute value of the column `baz`, then by `bar`."
        ~bypass
        ~cache-dir)))
 
-(defmacro show-time-elapsed [&rest expr]
+(defmacro show-time-elapsed [#* expr]
   (setv pc (gensym) t (gensym))
   `(do
     (import [time [perf-counter :as ~pc]])
