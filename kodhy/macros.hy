@@ -300,13 +300,18 @@ absolute value of the column `baz`, then by `bar`."
        ~cache-dir)))
 
 (defmacro show-time-elapsed [&rest expr]
-  (setv pc (gensym) t (gensym) r (gensym))
+  (setv pc (gensym) t (gensym))
   `(do
     (import [time [perf-counter :as ~pc]])
     (setv ~t (~pc))
-    (setv ~r (do ~@expr))
-    (setv ~t (- (~pc) ~t))
-    (print (.format "Time elapsed: {} min {} s"
-      (int (// ~t 60))
-      (round (% ~t 60))))
-    ~r))
+    (try
+      ~@expr
+      (finally
+        (setv ~t (round (- (~pc) ~t)))
+        (print "Time elapsed:" #* (gfor
+            [k v] (.items (dict
+              :h (// ~t (* 60 60))
+              :min (// (% ~t (* 60 60)) 60)
+              :s (% ~t 60)))
+            :if v
+            f"{v} {k}"))))))
