@@ -456,6 +456,16 @@ without newlines outside string literals."
 (defn c+1 [counter key]
   (+= (get counter key) 1))
 
+(defclass ad [dict]
+  "Attribute dictionary. A dictionary with which you can set, get, and
+  delete items as if they were attributes."
+  (defn __getattr__ [self k]
+    (get self k))
+  (defn __setattr__ [self k v]
+    (setv (get self k) v))
+  (defn __delattr__ [self k]
+    (del (get self k))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
