@@ -337,15 +337,14 @@ for each first-order interaction. Constant columns are removed."
 (defn show-expr [x]
 "Stringify Hy expressions to a fairly pretty form, albeit
 without newlines outside string literals."
-  (import [hy [HyExpression HyDict HySymbol]])
   (cond
-    [(instance? HyExpression x)
+    [(instance? hy.models.Expression x)
       (.format "({})" (.join " " (list (map show-expr x))))]
-    [(instance? HyDict x)
+    [(instance? hy.models.Dict x)
       (.format "{{{}}}" (.join " " (list (map show-expr x))))]
     [(keyword? x)
       (+ ":" x.name)]
-    [(instance? HySymbol x)
+    [(instance? hy.models.Symbol x)
       (str x)]
     [(instance? list x)
       (.format "[{}]" (.join " " (list (map show-expr x))))]
@@ -362,10 +361,9 @@ without newlines outside string literals."
     x))
 
 (defn str->keyword [x]
-  (import [hy [HyKeyword]])
   (if (keyword? x)
     x
-    (HyKeyword x)))
+    (hy.models.Keyword x)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Lists and other basic data structures

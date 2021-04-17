@@ -1,6 +1,5 @@
 (import
-  collections
-  [hy [HyList HyDict HyString HySymbol HyExpression]])
+  collections)
 
 (defn mangle [p]
   ; Mangles a symbol name.
@@ -22,7 +21,7 @@
   ; #p [a b c]  =>  {"a" a  "b" b  "c" c}
   (when (symbol? expr)
     (setv expr [expr]))
-  (HyDict (+ #* (lfor x expr [(str x) x]))))
+  (hy.models.Dict (+ #* (lfor x expr [(str x) x]))))
 
 (defmacro lc [vars a1 [a2 None]]
 "A more Lispy syntax for list comprehensions.
@@ -154,7 +153,7 @@ The value of the whole expression is that provided by 'ret' or
 
 (defn recur-sym-replace [expr f] (cond
   ; Recursive symbol replacement.
-  [(instance? HySymbol expr)
+  [(instance? hy.models.Symbol expr)
     (f expr)]
   [(coll? expr)
     ((type expr) (amap (recur-sym-replace it f) expr))]
@@ -169,7 +168,7 @@ The value of the whole expression is that provided by 'ret' or
 
 (defmacro qw [#* words]
 "(qw foo bar baz) => ['foo', 'bar', 'baz']"
-  (HyList (map HyString words)))
+  (hy.models.List (map hy.models.String words)))
 
 (defmacro meth [param-list #* body]
 "(meth [foo] (+ @bar foo))  =>  (fn [self foo] (+ self.bar foo))"
@@ -185,9 +184,9 @@ The value of the whole expression is that provided by 'ret' or
     [(= sym "@@")
       'self]
     [(.startswith sym "@")
-      `(. self ~@(amap (HySymbol it) (.split (cut sym 1) ".")))]
+      `(. self ~@(amap (hy.models.Symbol it) (.split (cut sym 1) ".")))]
     [(.startswith sym "is_@")
-      `(. self ~@(amap (HySymbol it) (.split (+ "is_" (cut sym (len "is_@"))) ".")))]
+      `(. self ~@(amap (hy.models.Symbol it) (.split (+ "is_" (cut sym (len "is_@"))) ".")))]
     [True
       sym])))))
 
@@ -206,7 +205,7 @@ The value of the whole expression is that provided by 'ret' or
 (defmacro $ [obj key]
 ; Given a pd.DataFrame 'mtcars':
 ;     ($ mtcars hp)            =>  the column "hp"
-  (panda-get 'loc obj COLON (HyString key)))
+  (panda-get 'loc obj COLON (hy.models.String key)))
 
 (defmacro geta [obj #* keys]
 "For numpy arrays."
@@ -220,7 +219,7 @@ The value of the whole expression is that provided by 'ret' or
   (cond
     [(= key :)
       '(slice None)]
-    [(and (instance? HyExpression key) (= (get key 0) :))
+    [(and (instance? hy.models.Expression key) (= (get key 0) :))
       `(slice ~@(cut key 1))]
     [True
       key]))
@@ -236,7 +235,7 @@ The value of the whole expression is that provided by 'ret' or
     (if (.startswith sym "$")
       (if (= (len sym) 1)
         df-sym
-        (panda-get 'loc df-sym COLON (HyString (cut sym 1))))
+        (panda-get 'loc df-sym COLON (hy.models.String (cut sym 1))))
       sym))))
 
 (defmacro wc [df #* body]
