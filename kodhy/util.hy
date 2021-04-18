@@ -1,5 +1,9 @@
 (require [kodhy.macros [*]])
 
+(import
+  [functools [reduce]]
+  [itertools [combinations]])
+
 (setv T True)
 (setv F False)
 
