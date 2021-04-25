@@ -2,7 +2,8 @@
 
 (import
   [functools [reduce]]
-  [itertools [combinations]])
+  [itertools [combinations]]
+  [toolz [first second partition]])
 
 (setv T True)
 (setv F False)
@@ -143,7 +144,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 
 (defn recategorize [x #* kv]
   (import [pandas :as pd])
-  (setv kv (list (partition kv)))
+  (setv kv (list (partition 2 kv)))
   (setv d (dict kv))
   (unless (= (sorted x.cat.categories) (sorted (.keys d)))
     (raise (ValueError "original categories don't match")))

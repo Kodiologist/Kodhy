@@ -117,7 +117,7 @@ value bound to 'it'."
     (setv it ~keyform)
     (cond
       ~@(gfor form clauses
-        `[(= it ~(first form))
+        `[(= it ~(get form 0))
           ~@(cut form 1)])
       ~@(if extra [extra] []))))
 
@@ -132,8 +132,8 @@ with kodhy.util.ret and kodhy.util.retf. If the first element of
 The value of the whole expression is that provided by 'ret' or
 'retf', if one of those was used, or the last expression otherwise."
   (setv block-name 'None)
-  (when (and body (keyword? (first body)))
-    (setv [block-name body] [(str (first body)) (rest body)]))
+  (when (and body (keyword? (get body 0)))
+    (setv [block-name body] [(str (get body 0)) (rest body)]))
   (setv r (gensym))
   `(do (import [kodhy.util [_KodhyBlockReturn]]) (try
     (do ~@body)
