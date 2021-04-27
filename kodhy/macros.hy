@@ -107,7 +107,7 @@ value bound to 'it'."
     (cond
       ~@(gfor form clauses
         `[(= it ~(get form 0))
-          ~@(cut form 1)])
+          ~@(cut form 1 None)])
       ~@(if extra [extra] []))))
 
 (defmacro replicate [n #* body]
@@ -173,9 +173,9 @@ The value of the whole expression is that provided by 'ret' or
     [(= sym "@@")
       'self]
     [(.startswith sym "@")
-      `(. self ~@(amap (hy.models.Symbol it) (.split (cut sym 1) ".")))]
+      `(. self ~@(amap (hy.models.Symbol it) (.split (cut sym 1 None) ".")))]
     [(.startswith sym "is_@")
-      `(. self ~@(amap (hy.models.Symbol it) (.split (+ "is_" (cut sym (len "is_@"))) ".")))]
+      `(. self ~@(amap (hy.models.Symbol it) (.split (+ "is_" (cut sym (len "is_@") None)) ".")))]
     [True
       sym])))))
 
@@ -209,7 +209,7 @@ The value of the whole expression is that provided by 'ret' or
     [(= key :)
       '(slice None)]
     [(and (instance? hy.models.Expression key) (= (get key 0) :))
-      `(slice ~@(cut key 1))]
+      `(slice ~@(cut key 1 None))]
     [True
       key]))
 
@@ -224,7 +224,7 @@ The value of the whole expression is that provided by 'ret' or
     (if (.startswith sym "$")
       (if (= (len sym) 1)
         df-sym
-        (panda-get 'loc df-sym COLON (hy.models.String (cut sym 1))))
+        (panda-get 'loc df-sym COLON (hy.models.String (cut sym 1 None))))
       sym))))
 
 (defmacro wc [df #* body]
