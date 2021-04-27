@@ -1,17 +1,6 @@
 (import
   collections)
 
-(defn mangle [p]
-  ; Mangles a symbol name.
-  ; Copied from Hy's parser.py (and translated to Hy).
-  (when (and (.startswith p "*") (.endswith p "*") (not-in p ["*" "**"]))
-    (setv p (.upper (cut p 1 -1))))
-  (unless (= p "-")
-    (setv p (.replace p "-" "_")))
-  (when (and (.endswith p "?") (!= p "?"))
-    (setv p (.format "is_{}" (cut p None -1))))
-  p)
-
 (defmacro incf [expr]
   `(+= ~expr 1))
 
