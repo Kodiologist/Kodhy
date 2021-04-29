@@ -142,7 +142,7 @@ The value of the whole expression is that provided by 'ret' or
 
 (defn recur-sym-replace [expr f] (cond
   ; Recursive symbol replacement.
-  [(instance? hy.models.Symbol expr)
+  [(isinstance expr hy.models.Symbol)
     (f expr)]
   [(coll? expr)
     ((type expr) (amap (recur-sym-replace it f) expr))]
@@ -208,7 +208,7 @@ The value of the whole expression is that provided by 'ret' or
   (cond
     [(= key :)
       '(slice None)]
-    [(and (instance? hy.models.Expression key) (= (get key 0) :))
+    [(and (isinstance key hy.models.Expression) (= (get key 0) :))
       `(slice ~@(cut key 1 None))]
     [True
       key]))

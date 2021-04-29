@@ -85,7 +85,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 (defn valcounts [x [y None]]
   (import [pandas :as pd] [numpy :as np])
   (setv [x y] (rmap [v [x y]]
-    (if (or (none? v) (instance? pd.Series v))
+    (if (or (none? v) (isinstance v pd.Series))
       v
       (pd.Series (list v)))))
   (when (none? y) (return (.rename
@@ -100,11 +100,11 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     (.replace x np.nan "~N/A") (.replace y np.nan "~N/A")))
   ; If x or y are Categorical, reorder the rows and columns of the
   ; output accordingly.
-  (when (instance? pd.api.types.CategoricalDtype x.dtype)
+  (when (isinstance x.dtype pd.api.types.CategoricalDtype)
     (setv cats (+ (list x.cat.categories)
       (if (in "~N/A" ct.index) ["~N/A"] [])))
     (setv ct (getl ct cats)))
-  (when (instance? pd.api.types.CategoricalDtype y.dtype)
+  (when (isinstance y.dtype pd.api.types.CategoricalDtype)
     (setv cats (+ (list y.cat.categories)
       (if (in "~N/A" ct.columns) ["~N/A"] [])))
     (setv ct (getl ct : cats)))
@@ -174,7 +174,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (do
         (setv chunk (shift args))
         (setv chunk (cond
-          [(instance? pd.Series chunk)
+          [(isinstance chunk pd.Series)
             (.copy chunk)]
           [(scalar? chunk)
             (pd.Series (* [chunk] height))]
@@ -183,7 +183,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
         (setv chunk.name x)
         (.append chunks chunk))
       (.append chunks (cond
-          [(instance? pd.DataFrame x)
+          [(isinstance x pd.DataFrame)
             x]
           [(scalar? x)
             (pd.Series (* [x] height))]
@@ -206,7 +206,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (import [pandas :as pd])
   (unless inplace
     (setv d (.copy d)))
-  (for [[_ col] (if (instance? pd.Series d) [[None d]] (.iteritems d))]
+  (for [[_ col] (if (isinstance d pd.Series) [[None d]] (.iteritems d))]
     (when (hasattr col "cat")
       (.remove-unused-categories col.cat :inplace T)))
   d)
@@ -221,18 +221,18 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 (defn -number-format [x f]
   (import [numpy :as np] [pandas :as pd])
   (cond
-    [(instance? pd.DataFrame x) (do
+    [(isinstance x pd.DataFrame) (do
       (setv x (.copy x))
       (for [r (range (first x.shape))]
         (for [c (range (second x.shape))]
           (setv (geti x r c) (-number-format (geti x r c) f))))
       x)]
-   [(instance? pd.Series x) (do
+   [(isinstance x pd.Series) (do
      (setv x (.copy x))
      (for [i (range (len x))]
          (setv (geti x i) (-number-format (geti x i) f)))
      x)]
-   [(instance? np.ndarray x)
+   [(isinstance x np.ndarray)
      (f x)]
    [(coll? x)
     ((type x) (amap (-number-format it f) x))]
@@ -252,7 +252,7 @@ such an object."
 (defn thousep [x]
   (import [numpy :as np])
   (setv vec-f (np.vectorize (fn [v] (format v ","))))
-  (-number-format x (fn [v] (if (instance? np.ndarray v) (vec-f v) (format v ",")))))
+  (-number-format x (fn [v] (if (isinstance v np.ndarray) (vec-f v) (format v ",")))))
 
 (defn with-1o-interacts [m [column-names None]]
 "Given a data matrix m, return a matrix with a new column
@@ -343,17 +343,17 @@ for each first-order interaction. Constant columns are removed."
 "Stringify Hy expressions to a fairly pretty form, albeit
 without newlines outside string literals."
   (cond
-    [(instance? hy.models.Expression x)
+    [(isinstance x hy.models.Expression)
       (.format "({})" (.join " " (list (map show-expr x))))]
-    [(instance? hy.models.Dict x)
+    [(isinstance x hy.models.Dict)
       (.format "{{{}}}" (.join " " (list (map show-expr x))))]
     [(keyword? x)
       (+ ":" x.name)]
-    [(instance? hy.models.Symbol x)
+    [(isinstance x hy.models.Symbol)
       (str x)]
-    [(instance? list x)
+    [(isinstance x list)
       (.format "[{}]" (.join " " (list (map show-expr x))))]
-    [(instance? tuple x)
+    [(isinstance x tuple)
       (.format "(, {})" (.join " " (list (map show-expr x))))]
     [(string? x)
       (double-quote (str x))]
