@@ -123,7 +123,7 @@ The value of the whole expression is that provided by 'ret' or
   (setv block-name 'None)
   (when (and body (keyword? (get body 0)))
     (setv [block-name body] [(str (get body 0)) (rest body)]))
-  (setv r (gensym))
+  (setv r (hy.gensym))
   `(do (import [kodhy.util [_KodhyBlockReturn]]) (try
     (do ~@body)
     (except [~r _KodhyBlockReturn]
@@ -232,21 +232,21 @@ The value of the whole expression is that provided by 'ret' or
     (wc df (+ $a $b))  =>  (+ ($ df a) ($ df b))
 The replacement is recursive.
 `$` on its own becomes simply `df`."
-  (setv df-sym (gensym))
+  (setv df-sym (hy.gensym))
   (setv body (dollar-replace df-sym body))
   `(do (setv ~df-sym ~df) ~@body))
 
 (defmacro ss [df #* body]
 "Subset. Evaluate `body` like `wc`, which should produce a
 boolean vector. Return `df` indexed by the boolean vector."
-  (setv df-sym (gensym))
+  (setv df-sym (hy.gensym))
   (setv body (dollar-replace df-sym body))
   `(do (setv ~df-sym ~df) (get ~df-sym ~@body)))
 
 (defmacro ssi [df #* body]
 "Subset index. Like `ss`, but returns a list of the indices that
 matched."
-  (setv df-sym (gensym))
+  (setv df-sym (hy.gensym))
   (setv body (dollar-replace df-sym body))
   `(do
     (setv ~df-sym ~df)
@@ -255,7 +255,7 @@ matched."
 (defmacro ordf [df #* exprs]
 "Order data frame. (ordf d (.abs $baz) $bar) sorts first by the
 absolute value of the column `baz`, then by `bar`."
-  (setv [df-sym pd sorting-df] [(gensym) (gensym) (gensym)])
+  (setv [df-sym pd sorting-df] [(hy.gensym) (hy.gensym) (hy.gensym)])
   (setv exprs (dollar-replace df-sym exprs))
   `(do
     (setv ~df-sym ~df)
@@ -265,7 +265,7 @@ absolute value of the column `baz`, then by `bar`."
 ; ~pd
 
 (defmacro wcby [df by #* body]
-  (setv df-sym (gensym)  it-sym (gensym))
+  (setv df-sym (hy.gensym)  it-sym (hy.gensym))
   `(do
     (setv ~df-sym ~df)
     (.apply
@@ -288,7 +288,7 @@ absolute value of the column `baz`, then by `bar`."
        ~cache-dir)))
 
 (defmacro show-time-elapsed [#* expr]
-  (setv pc (gensym) t (gensym))
+  (setv pc (hy.gensym) t (hy.gensym))
   `(do
     (import [time [perf-counter :as ~pc]])
     (setv ~t (~pc))
