@@ -8,7 +8,7 @@
   ; Pun.
   ; #p a  =>  {"a" a}
   ; #p [a b c]  =>  {"a" a  "b" b  "c" c}
-  (when (symbol? expr)
+  (when (isinstance expr hy.models.Symbol)
     (setv expr [expr]))
   (hy.models.Dict (+ #* (lfor x expr [(str x) x]))))
 
@@ -121,7 +121,7 @@ with kodhy.util.ret and kodhy.util.retf. If the first element of
 The value of the whole expression is that provided by 'ret' or
 'retf', if one of those was used, or the last expression otherwise."
   (setv block-name 'None)
-  (when (and body (keyword? (get body 0)))
+  (when (and body (isinstance (get body 0) hy.models.Keyword))
     (setv [block-name body] [(str (get body 0)) (rest body)]))
   (setv r (hy.gensym))
   `(do (import  kodhy.util [_KodhyBlockReturn]) (try
@@ -135,7 +135,7 @@ The value of the whole expression is that provided by 'ret' or
         (. ~r value))))))
 
 (defmacro retf [block-name [value 'None]]
-  (assert (keyword? block-name))
+  (assert (isinstance block-name hy.models.Keyword))
   `(do
     (import  kodhy.util [_KodhyBlockReturn])
     (raise (_KodhyBlockReturn ~(str block-name) ~value))))
@@ -276,7 +276,7 @@ absolute value of the column `baz`, then by `bar`."
  `(do
     (import  kodhy.util [cbind-join :as ~g!cj])
     (~g!cj "outer" ~@(gfor a args
-      (if (keyword? a) a.name a)))))
+      (if (isinstance a hy.models.Keyword) a.name a)))))
 
 (defmacro cached [expr [bypass 'None] [cache-dir 'None]]
   `(do

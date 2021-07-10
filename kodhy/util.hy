@@ -3,6 +3,8 @@
 (import
   functools [reduce]
   itertools [combinations]
+  collections.abc [Iterable]
+  numbers [Number]
   toolz [first second partition])
 
 (setv T True)
@@ -85,10 +87,10 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 (defn valcounts [x [y None]]
   (import  pandas :as pd  numpy :as np)
   (setv [x y] (rmap [v [x y]]
-    (if (or (none? v) (isinstance v pd.Series))
+    (if (or (is v None) (isinstance v pd.Series))
       v
       (pd.Series (list v)))))
-  (when (none? y) (return (.rename
+  (when (is y None) (return (.rename
     ((if (in "float" (str x.dtype)) (fn [x] (.sort-index x)) identity)
       (.value-counts x :sort F :dropna F))
     (λ (if (pd.isnull it) (str "N/A") it)))))
@@ -159,18 +161,18 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (import  pandas :as pd)
   (setv args (list args))
   (setv index None)
-  (when (and (string? (first args)) (= (first args) "I"))
+  (when (and (isinstance (first args) str) (= (first args) "I"))
     (shift args)
     (setv index (shift args)))
   (defn scalar? [x]
-    (or (string? x) (not (iterable? x))))
+    (or (isinstance x str) (not (isinstance x Iterable))))
   (setv height (max (amap
     (if (scalar? it) 1 (len it))
     args)))
   (setv chunks [])
   (while args
     (setv x (shift args))
-    (if (string? x)
+    (if (isinstance x str)
       (do
         (setv chunk (shift args))
         (setv chunk (cond
@@ -190,7 +192,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
           [T
             (pd.Series x)]))))
   (setv result (pd.concat :objs chunks :axis 1 :join join))
-  (unless (none? index)
+  (unless (is index None)
     (setv (. result index) index))
   result)
 
@@ -236,7 +238,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
      (f x)]
    [(coll? x)
     ((type x) (amap (-number-format it f) x))]
-   [(numeric? x)
+   [(isinstance x Number)
      (f x)]
    [T
      x]))
@@ -296,7 +298,7 @@ for each first-order interaction. Constant columns are removed."
   (setv cols (list df.columns))
   (setv table (.astype df.values object))
   (setv table ((np.vectorize :otypes [object]
-     (λ (if (and (float? it) (isnan it)) None it))) table))
+     (λ (if (and (isinstance it float) (isnan it)) None it))) table))
   (setv (get out "first_col_is_row_labels") F)
   (when (or df.index.name
       (not (.all (= df.index (list (range (len df)))))))
@@ -347,7 +349,7 @@ without newlines outside string literals."
       (.format "({})" (.join " " (list (map show-expr x))))]
     [(isinstance x hy.models.Dict)
       (.format "{{{}}}" (.join " " (list (map show-expr x))))]
-    [(keyword? x)
+    [(isinstance x hy.models.Keyword)
       (+ ":" x.name)]
     [(isinstance x hy.models.Symbol)
       (str x)]
@@ -355,18 +357,18 @@ without newlines outside string literals."
       (.format "[{}]" (.join " " (list (map show-expr x))))]
     [(isinstance x tuple)
       (.format "(, {})" (.join " " (list (map show-expr x))))]
-    [(string? x)
+    [(isinstance x str)
       (double-quote (str x))]
     [T
       (str x)]))
 
 (defn keyword->str [x]
-  (if (keyword? x)
+  (if (isinstance x hy.models.Keyword)
     x.name
     x))
 
 (defn str->keyword [x]
-  (if (keyword? x)
+  (if (isinstance x hy.models.Keyword)
     x
     (hy.models.Keyword x)))
 
@@ -479,9 +481,9 @@ without newlines outside string literals."
     (import codecs)
     (setv f codecs.open))
   (with [o (f name #** (dict (+
-      (if (none? mode)      [] [(, "mode" mode)])
-      (if (none? encoding)  [] [(, "encoding" encoding)])
-      (if (none? buffering) [] [(, "buffering" buffering)]))))]
+      (if (is mode None)      [] [(, "mode" mode)])
+      (if (is encoding None)  [] [(, "encoding" encoding)])
+      (if (is buffering None) [] [(, "buffering" buffering)]))))]
     (o.read)))
 
 (defn barf [name content [mode "w"] [encoding None] [buffering None]]
@@ -490,8 +492,8 @@ without newlines outside string literals."
     (import codecs)
     (setv f codecs.open))
   (with [o (f name mode #** (dict (+
-      (if (none? encoding)  [] [(, "encoding" encoding)])
-      (if (none? buffering) [] [(, "buffering" buffering)]))))]
+      (if (is encoding None)  [] [(, "encoding" encoding)])
+      (if (is buffering None) [] [(, "buffering" buffering)]))))]
     (o.write content)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -505,7 +507,7 @@ without newlines outside string literals."
   (import json uuid)
   (for [[option value] [
       ["indent" 2] ["separators" (, "," ": ")] ["sort_keys" T]]]
-    (when (none? (.get kwargs option))
+    (when (is (.get kwargs option None))
       (setv (get kwargs option) value)))
   (setv substituted-parts {})
   (defn recursive-subst [x]
@@ -551,7 +553,7 @@ and should return a 1D nparray of predictions given x-test."
       x)))
   (for [[train-i test-i] folds]
     (setv result (f (get x train-i) (get y train-i) (get x test-i)))
-    (when (none? y-pred)
+    (when (is y-pred None)
       (setv y-pred (np.empty-like y :dtype result.dtype)))
     (setv (get y-pred test-i) result))
   y-pred)
@@ -662,7 +664,7 @@ instead of calling `f` or consulting the existing cache."
   (setv path (os.path.join cache-dir basename))
   (setv value bypass)
   (setv write-value T)
-  (when (none? value)
+  (when (is value None)
     (if (os.path.exists path)
       (do
         (setv value (with [o (open path "rb")]
@@ -795,7 +797,7 @@ instead of calling `f` or consulting the existing cache."
 (defn _R-setup []
   (import pyper)
   (global _Rproc)
-  (when (none? _Rproc)
+  (when (is _Rproc None)
     (setv _Rproc (pyper.R))))
 
 (defn R-run [expr]
@@ -828,7 +830,7 @@ instead of calling `f` or consulting the existing cache."
           (for [j (range (second value.shape))]
             (when (in "category" (str (get value.dtypes j)))
               (setv v (geti value : j))
-              (unless (all (map string? v.cat.categories))
+              (unless (all (gfor  c v.cat.categories  (isinstance c str)))
                 (raise (ValueError "Only string levels are allowed in Categoricals")))
               (.run _Rproc (.format
                 "{}[,{}] = factor({}[,{}], levels = c({}))"
@@ -866,7 +868,7 @@ like a histogram. Missing values are silently ignored."
     matplotlib.collections [PatchCollection]
     numpy [isnan])
 
-  (when (none? group)
+  (when (is group None)
     (setv group (* (, True) (len xs))))
   (assert (= (len group) (len xs)))
   (setv levels (unique group))
@@ -934,8 +936,8 @@ like a histogram. Missing values are silently ignored."
 
   (setv kde (scist.gaussian-kde xs :bw-method bw))
   (setv test-points (np.linspace :num steps
-    (if (none? lo) (np.min xs) lo)
-    (if (none? hi) (np.max xs) hi)))
+    (if (is lo None) (np.min xs) lo)
+    (if (is hi None) (np.max xs) hi)))
 
   (unless ax
     (setv ax (plt.gca)))
