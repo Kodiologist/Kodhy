@@ -1,9 +1,9 @@
-(require [kodhy.macros [*]])
+(require  kodhy.macros *)
 
 (import
-  [functools [reduce]]
-  [itertools [combinations]]
-  [toolz [first second partition]])
+  functools [reduce]
+  itertools [combinations]
+  toolz [first second partition])
 
 (setv T True)
 (setv F False)
@@ -69,21 +69,21 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 
 (defn rmse [v1 v2]
 "Root mean square error."
-  (import [numpy :as np])
+  (import  numpy :as np)
   (np.sqrt (np.mean (** (- v1 v2) 2))))
 
 (defn mean-ad [v1 v2]
 "Mean absolute deviation."
-  (import [numpy :as np])
+  (import  numpy :as np)
   (np.mean (np.abs (- v1 v2))))
 
 (defn jitter [v [factor 100]]
-  (import [numpy :as np])
+  (import  numpy :as np)
   (setv b (/ (- (.max v) (.min v)) (* 2 factor)))
   (+ v (np.random.uniform (- b) b (len v))))
 
 (defn valcounts [x [y None]]
-  (import [pandas :as pd] [numpy :as np])
+  (import  pandas :as pd  numpy :as np)
   (setv [x y] (rmap [v [x y]]
     (if (or (none? v) (isinstance v pd.Series))
       v
@@ -127,12 +127,12 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   x)
 
 (defn pds-from-pairs [l #** kwargs]
-  (import [pandas :as pd])
+  (import  pandas :as pd)
   (setv l (list l))
   (pd.Series (amap (second it) l) (amap (first it) l) #** kwargs))
 
 (defn pd-posix-time [series]
-  (import [numpy :as np])
+  (import  numpy :as np)
   (// (.astype series np.int64) (int 1e9)))
 
 (defn pd-rename-cats [series f-or-dict]
@@ -143,7 +143,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     series.cat.categories)))
 
 (defn recategorize [x #* kv]
-  (import [pandas :as pd])
+  (import  pandas :as pd)
   (setv kv (list (partition 2 kv)))
   (setv d (dict kv))
   (unless (= (sorted x.cat.categories) (sorted (.keys d)))
@@ -156,7 +156,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn cbind-join [join #* args]
-  (import [pandas :as pd])
+  (import  pandas :as pd)
   (setv args (list args))
   (setv index None)
   (when (and (string? (first args)) (= (first args) "I"))
@@ -195,7 +195,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   result)
 
 (defn df-from-pairs [l]
-  (import [pandas :as pd])
+  (import  pandas :as pd)
   (setv d (pd.DataFrame (lc [row l] (lc [[_ v] row] v))))
   (setv d.columns (amap (first it) (first l)))
   d)
@@ -203,7 +203,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 (defn drop-unused-cats [d [inplace F]]
   ; Drops unused categories from all categorical columns.
   ; Can also be applied to a Series.
-  (import [pandas :as pd])
+  (import  pandas :as pd)
   (unless inplace
     (setv d (.copy d)))
   (for [[_ col] (if (isinstance d pd.Series) [[None d]] (.iteritems d))]
@@ -219,7 +219,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (geti d : 0))
 
 (defn -number-format [x f]
-  (import [numpy :as np] [pandas :as pd])
+  (import  numpy :as np  pandas :as pd)
   (cond
     [(isinstance x pd.DataFrame) (do
       (setv x (.copy x))
@@ -245,19 +245,19 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 "Round for display. Takes just a number, array, Series, DataFrame,
 or other collection, or both a number of digits to round to and
 such an object."
-  (import [numpy :as np])
+  (import  numpy :as np)
   (setv [x digits] (if (is a2 None) [a1 3] [a2 a1]))
   (-number-format x (fn [v] (np.round v digits))))
 
 (defn thousep [x]
-  (import [numpy :as np])
+  (import  numpy :as np)
   (setv vec-f (np.vectorize (fn [v] (format v ","))))
   (-number-format x (fn [v] (if (isinstance v np.ndarray) (vec-f v) (format v ",")))))
 
 (defn with-1o-interacts [m [column-names None]]
 "Given a data matrix m, return a matrix with a new column
 for each first-order interaction. Constant columns are removed."
-  (import [numpy :as np] [itertools [combinations]])
+  (import  numpy :as np  itertools [combinations])
   (when column-names
     (assert (= (len column-names) (second m.shape))))
   (setv [new-names new-cols] (zip #* (filt
@@ -272,7 +272,7 @@ for each first-order interaction. Constant columns are removed."
     new-m))
 
 (defn print-big-pd [obj]
-  (import [pandas :as pd])
+  (import  pandas :as pd)
   (with [(pd.option-context
       "display.max_rows" (int 5000)
       "display.max_columns" (int 100)
@@ -283,7 +283,7 @@ for each first-order interaction. Constant columns are removed."
 (defn pd-to-pretty-json [path df]
   ; Serializes a Pandas dataframe to an obvious-looking JSON format.
   ; Information about categorial columns is saved as metadata.
-  (import [math [isnan]] [numpy :as np] [collections [OrderedDict]])
+  (import  math [isnan]  numpy :as np  collections [OrderedDict])
   (setv out (OrderedDict))
 
   (setv (get out "categories") (OrderedDict (rmap [col (ssi df.dtypes (= $ "category"))]
@@ -312,7 +312,7 @@ for each first-order interaction. Constant columns are removed."
   (if path (barf path jstr) jstr))
 
 (defn pretty-json-to-pd [path]
-  (import json [pandas :as pd])
+  (import  json  pandas :as pd)
   (setv j (json.loads (slurp path)))
   (setv df (pd.DataFrame (cut (get j "table") 1 None)
     :columns (get j "table" 0)))
@@ -541,10 +541,10 @@ a numpy matrix, not a pandas DataFrame.
 
 f will generally be of the form (fn [x-train y-train x-test] ...),
 and should return a 1D nparray of predictions given x-test."
-  (import [numpy :as np])
+  (import  numpy :as np)
   (setv y-pred None)
   (unless folds
-    (import [sklearn.model-selection :as skms])
+    (import  sklearn.model-selection :as skms)
     (setv folds (.split
       (skms.KFold :n-splits n-folds
         :shuffle shuffle :random-state random-state)
@@ -561,7 +561,7 @@ and should return a 1D nparray of predictions given x-test."
 ; subjects with a given label are in the same fold.
 ; bin-label-possibilities should be the return value of
 ; bin-labels.
-  (import [random [choice shuffle]] [collections [Counter]])
+  (import  random [choice shuffle]  collections [Counter])
   (setv group-sizes (Counter labels))
   (setv bins (list (choice bin-label-possibilities)))
   (shuffle bins)
@@ -592,7 +592,7 @@ and should return a 1D nparray of predictions given x-test."
 ; bins. Each bin is a tuple of numbers representing the size
 ; of a labelled group.
 
-  (import [collections [Counter]])
+  (import  collections [Counter])
 
   (setv initial-state (,
     (tuple (sorted (.values (Counter labels))))
@@ -717,7 +717,7 @@ instead of calling `f` or consulting the existing cache."
 (defn unpack-tversky [db-path
     [include-incomplete T]
     [exclude-sns None]]
-  (import sqlite3 [pandas :as pd])
+  (import  sqlite3  pandas :as pd)
   (try
     (do
       (setv db (sqlite3.connect db-path))
@@ -811,7 +811,7 @@ instead of calling `f` or consulting the existing cache."
   (.get _Rproc expr))
 
 (defn R-call [fn-expr #* args [print-it True] #** kwargs]
-  (import [collections [OrderedDict]])
+  (import  collections [OrderedDict])
   (_R-setup)
   (setv arg-string "")
   (for [[i a] (enumerate (+ args (tuple (sorted (.items kwargs)))))]
@@ -862,9 +862,9 @@ and circles that would overlap are stacked vertically, a bit
 like a histogram. Missing values are silently ignored."
 
   (import
-    [matplotlib.pyplot :as plt]
-    [matplotlib.collections [PatchCollection]]
-    [numpy [isnan]])
+    matplotlib.pyplot :as plt
+    matplotlib.collections [PatchCollection]
+    numpy [isnan])
 
   (when (none? group)
     (setv group (* (, True) (len xs))))
@@ -928,9 +928,9 @@ like a histogram. Missing values are silently ignored."
   ; The default `steps` is chosen to be 1 plus a power of 2.
 
   (import
-    [numpy :as np]
-    [scipy.stats :as scist]
-    [matplotlib.pyplot :as plt])
+    numpy :as np
+    scipy.stats :as scist
+    matplotlib.pyplot :as plt)
 
   (setv kde (scist.gaussian-kde xs :bw-method bw))
   (setv test-points (np.linspace :num steps

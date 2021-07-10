@@ -1,6 +1,6 @@
 (import
-  [pandas :as pd]
-  [kodhy.util [recategorize]])
+  pandas :as pd
+  kodhy.util [recategorize])
 
 (defn test-recat []
   (setv x (pd.Series (list "aabaddabcabbdbb") :dtype "category"))

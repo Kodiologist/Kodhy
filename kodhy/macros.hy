@@ -124,7 +124,7 @@ The value of the whole expression is that provided by 'ret' or
   (when (and body (keyword? (get body 0)))
     (setv [block-name body] [(str (get body 0)) (rest body)]))
   (setv r (hy.gensym))
-  `(do (import [kodhy.util [_KodhyBlockReturn]]) (try
+  `(do (import  kodhy.util [_KodhyBlockReturn]) (try
     (do ~@body)
     (except [~r _KodhyBlockReturn]
       (if (and (. ~r block-name) (!= (. ~r block-name) ~block-name))
@@ -137,7 +137,7 @@ The value of the whole expression is that provided by 'ret' or
 (defmacro retf [block-name [value 'None]]
   (assert (keyword? block-name))
   `(do
-    (import [kodhy.util [_KodhyBlockReturn]])
+    (import  kodhy.util [_KodhyBlockReturn])
     (raise (_KodhyBlockReturn ~(str block-name) ~value))))
 
 (defn recur-sym-replace [expr f] (cond
@@ -259,7 +259,7 @@ absolute value of the column `baz`, then by `bar`."
   (setv exprs (dollar-replace df-sym exprs))
   `(do
     (setv ~df-sym ~df)
-    (import [pandas :as ~pd])
+    (import  pandas :as ~pd)
     (setv ~sorting-df (.reset-index (.concat ~pd [~@exprs] 1) None True))
     (geti ~df-sym (. (.sort-values ~sorting-df (list (. ~sorting-df columns))) index))))
 ; ~pd
@@ -274,7 +274,7 @@ absolute value of the column `baz`, then by `bar`."
 
 (defmacro/g! cbind [#* args]
  `(do
-    (import [kodhy.util [cbind-join :as ~g!cj]])
+    (import  kodhy.util [cbind-join :as ~g!cj])
     (~g!cj "outer" ~@(gfor a args
       (if (keyword? a) a.name a)))))
 
@@ -290,7 +290,7 @@ absolute value of the column `baz`, then by `bar`."
 (defmacro show-time-elapsed [#* expr]
   (setv pc (hy.gensym) t (hy.gensym))
   `(do
-    (import [time [perf-counter :as ~pc]])
+    (import  time [perf-counter :as ~pc])
     (setv ~t (~pc))
     (try
       ~@expr

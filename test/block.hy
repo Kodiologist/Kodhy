@@ -1,7 +1,7 @@
-(require [kodhy.macros [block retf]])
+(require  kodhy.macros [block retf])
 
 (import
-  [kodhy.util [ret]])
+  kodhy.util [ret])
 
 (defn block-f [x]
   (setv l [])
