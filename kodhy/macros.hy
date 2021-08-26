@@ -1,5 +1,9 @@
+(require
+  hyrule [defmacro/g!])
+
 (import
-  collections)
+  collections
+  hyrule [coll?])
 
 (defmacro incf [expr]
   `(+= ~expr 1))
@@ -50,7 +54,7 @@
     (list (map
       (fn [~g!i]
         (setv a (get ~g!args ~g!i))
-        (setv b (get ~g!args (inc ~g!i)))
+        (setv b (get ~g!args (+ ~g!i 1)))
         ~expr)
       (range 0 (len ~g!args) 2)))))
 
@@ -122,7 +126,7 @@ The value of the whole expression is that provided by 'ret' or
 'retf', if one of those was used, or the last expression otherwise."
   (setv block-name 'None)
   (when (and body (isinstance (get body 0) hy.models.Keyword))
-    (setv [block-name body] [(str (get body 0)) (rest body)]))
+    (setv [block-name body] [(str (get body 0)) (cut body 1 None)]))
   (setv r (hy.gensym))
   `(do (import  kodhy.util [_KodhyBlockReturn]) (try
     (do ~@body)

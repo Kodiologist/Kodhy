@@ -1,10 +1,13 @@
-(require  kodhy.macros *)
+(require
+  hyrule [unless]
+  kodhy.macros *)
 
 (import
   functools [reduce]
   itertools [combinations]
   collections.abc [Iterable]
   numbers [Number]
+  hyrule [distinct flatten inc dec]
   toolz [first second partition])
 
 (setv T True)
