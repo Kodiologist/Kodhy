@@ -8,7 +8,7 @@
   collections.abc [Iterable]
   numbers [Number]
   hyrule [distinct flatten inc dec]
-  toolz [first second partition])
+  toolz [first second partition identity])
 
 (setv T True)
 (setv F False)
