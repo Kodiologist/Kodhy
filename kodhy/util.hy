@@ -7,7 +7,7 @@
   itertools [combinations]
   collections.abc [Iterable]
   numbers [Number]
-  hyrule [distinct flatten inc dec]
+  hyrule [distinct flatten inc dec coll?]
   toolz [first second partition identity])
 
 (setv T True)
