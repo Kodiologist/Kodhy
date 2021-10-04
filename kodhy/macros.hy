@@ -160,8 +160,11 @@ The value of the whole expression is that provided by 'ret' or
 ;  `(fn [x y] ~@body))
 
 (defmacro qw [#* words]
-"(qw foo bar baz) => ['foo', 'bar', 'baz']"
-  (hy.models.List (map hy.models.String words)))
+"(qw foo bar baz \"a b\" 5) => ['foo', 'bar', 'baz', 'a b', '5']"
+  (hy.models.List (gfor  w words  (hy.models.String
+    (if (isinstance w (, hy.models.Symbol hy.models.String))
+      w
+      (.lstrip (hy.repr w) "'"))))))
 
 (defmacro meth [param-list #* body]
 "(meth [foo] (+ @bar foo))  =>  (fn [self foo] (+ self.bar foo))"
