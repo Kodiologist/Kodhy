@@ -94,26 +94,6 @@ value bound to 'it'."
     (when (is-not it None)
       ~@body)))
 
-(defmacro case [keyform #* clauses]
-; (case x [:a 1] [:b 2])
-; Implicit progns are provided.
-; Returns None if no keys match.
-  (case-f keyform clauses None))
-
-(defmacro ecase [keyform #* clauses]
-; Like 'case', but throws LookupError if no case matches.
-  (case-f keyform clauses
-    '[True (raise (LookupError (+ "ecase: No match: " (repr it))))]))
-
-(defn case-f [keyform clauses extra]
-  `(do
-    (setv it ~keyform)
-    (cond
-      ~@(gfor form clauses
-        `[(= it ~(get form 0))
-          ~@(cut form 1 None)])
-      ~@(if extra [extra] []))))
-
 (defmacro replicate [n #* body]
   `(list (map (fn [_] ~@body) (range ~n))))
 

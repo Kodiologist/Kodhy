@@ -18,9 +18,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn signum [x] (cond
-  [(< x 0) -1]
-  [(> x 0)  1]
-  [T        0]))
+  (< x 0) -1
+  (> x 0)  1
+  T        0))
 
 (defn product [l]
   (setv a 1)
@@ -179,21 +179,21 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (do
         (setv chunk (shift args))
         (setv chunk (cond
-          [(isinstance chunk pd.Series)
-            (.copy chunk)]
-          [(scalar? chunk)
-            (pd.Series (* [chunk] height))]
-          [T
-            (pd.Series chunk)]))
+          (isinstance chunk pd.Series)
+            (.copy chunk)
+          (scalar? chunk)
+            (pd.Series (* [chunk] height))
+          T
+            (pd.Series chunk)))
         (setv chunk.name x)
         (.append chunks chunk))
       (.append chunks (cond
-          [(isinstance x pd.DataFrame)
-            x]
-          [(scalar? x)
-            (pd.Series (* [x] height))]
-          [T
-            (pd.Series x)]))))
+          (isinstance x pd.DataFrame)
+            x
+          (scalar? x)
+            (pd.Series (* [x] height))
+          T
+            (pd.Series x)))))
   (setv result (pd.concat :objs chunks :axis 1 :join join))
   (unless (is index None)
     (setv (. result index) index))
@@ -226,25 +226,25 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 (defn -number-format [x f]
   (import  numpy :as np  pandas :as pd)
   (cond
-    [(isinstance x pd.DataFrame) (do
+    (isinstance x pd.DataFrame) (do
       (setv x (.copy x))
       (for [r (range (first x.shape))]
         (for [c (range (second x.shape))]
           (setv (geti x r c) (-number-format (geti x r c) f))))
-      x)]
-   [(isinstance x pd.Series) (do
+      x)
+   (isinstance x pd.Series) (do
      (setv x (.copy x))
      (for [i (range (len x))]
          (setv (geti x i) (-number-format (geti x i) f)))
-     x)]
-   [(isinstance x np.ndarray)
-     (f x)]
-   [(coll? x)
-    ((type x) (amap (-number-format it f) x))]
-   [(isinstance x Number)
-     (f x)]
-   [T
-     x]))
+     x)
+   (isinstance x np.ndarray)
+     (f x)
+   (coll? x)
+    ((type x) (amap (-number-format it f) x))
+   (isinstance x Number)
+     (f x)
+   T
+     x))
 
 (defn rd [a1 [a2 None]]
 "Round for display. Takes just a number, array, Series, DataFrame,
@@ -348,22 +348,22 @@ for each first-order interaction. Constant columns are removed."
 "Stringify Hy expressions to a fairly pretty form, albeit
 without newlines outside string literals."
   (cond
-    [(isinstance x hy.models.Expression)
-      (.format "({})" (.join " " (list (map show-expr x))))]
-    [(isinstance x hy.models.Dict)
-      (.format "{{{}}}" (.join " " (list (map show-expr x))))]
-    [(isinstance x hy.models.Keyword)
-      (+ ":" x.name)]
-    [(isinstance x hy.models.Symbol)
-      (str x)]
-    [(isinstance x list)
-      (.format "[{}]" (.join " " (list (map show-expr x))))]
-    [(isinstance x tuple)
-      (.format "(, {})" (.join " " (list (map show-expr x))))]
-    [(isinstance x str)
-      (double-quote (str x))]
-    [T
-      (str x)]))
+    (isinstance x hy.models.Expression)
+      (.format "({})" (.join " " (list (map show-expr x))))
+    (isinstance x hy.models.Dict)
+      (.format "{{{}}}" (.join " " (list (map show-expr x))))
+    (isinstance x hy.models.Keyword)
+      (+ ":" x.name)
+    (isinstance x hy.models.Symbol)
+      (str x)
+    (isinstance x list)
+      (.format "[{}]" (.join " " (list (map show-expr x))))
+    (isinstance x tuple)
+      (.format "(, {})" (.join " " (list (map show-expr x))))
+    (isinstance x str)
+      (double-quote (str x))
+    T
+      (str x)))
 
 (defn keyword->str [x]
   (if (isinstance x hy.models.Keyword)
@@ -430,12 +430,12 @@ without newlines outside string literals."
   (setv regex (re.compile regex))
   (setv keys (filt (.search regex it) (.keys obj)))
   (cond
-    [(> (len keys) 1)
-      (raise (LookupError "Ambiguous matcher"))]
-    [(= (len keys) 0)
-      (raise (LookupError "No match"))]
-    [T
-      (get obj (get keys 0))]))
+    (> (len keys) 1)
+      (raise (LookupError "Ambiguous matcher"))
+    (= (len keys) 0)
+      (raise (LookupError "No match"))
+    T
+      (get obj (get keys 0))))
 
 (defn pairs [#* a]
   (setv a (list a))
