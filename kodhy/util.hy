@@ -761,17 +761,17 @@ instead of calling `f` or consulting the existing cache."
       (.execute db "create temporary table IncludeSN(sn integer primary key)")
       (.executemany db "insert into IncludeSN (sn) values (?)" (amap (, it) sb.index))
 
-      (setv dat (.sortlevel (geti (pd.read-sql-query :con db :index-col ["sn" "k"]
+      (setv dat (.sort-index (geti (pd.read-sql-query :con db :index-col ["sn" "k"]
         "select * from D where sn in (select * from IncludeSN)") : 0)))
 
-      (setv timing (.sortlevel (pd.read-sql-query :con db :index-col ["sn" "k"]
+      (setv timing (.sort-index (pd.read-sql-query :con db :index-col ["sn" "k"]
         :parse-dates (dict (amap (, it {"unit" "s"}) (qw first_sent received)))
         "select * from Timing where sn in (select * from IncludeSN)")))
 
       (setv sb.index (tversky-format-s sb.index))
       (for [df [dat timing]]
-        (.set-levels df.index :inplace T :level "sn"
-          (tversky-format-s (first df.index.levels))))
+        (setv df.index (.set-levels df.index :level "sn"
+          (tversky-format-s (first df.index.levels)))))
 
       (, sb dat timing))
 
