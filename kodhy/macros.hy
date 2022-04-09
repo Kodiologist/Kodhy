@@ -126,12 +126,12 @@ The value of the whole expression is that provided by 'ret' or
 
 (defn recur-sym-replace [expr f] (cond
   ; Recursive symbol replacement.
-  [(isinstance expr hy.models.Symbol)
-    (f expr)]
-  [(coll? expr)
-    ((type expr) (amap (recur-sym-replace it f) expr))]
-  [True
-    expr]))
+  (isinstance expr hy.models.Symbol)
+    (f expr)
+  (coll? expr)
+    ((type expr) (amap (recur-sym-replace it f) expr))
+  True
+    expr))
 
 (defmacro λ [#* body]
   `(fn [it] ~@body))
@@ -155,16 +155,16 @@ The value of the whole expression is that provided by 'ret' or
 
 (defn meth-f [param-list body]
   `(fn [self ~@param-list] ~@(recur-sym-replace body (fn [sym] (cond
-    [(in sym ["@" "@="])
-      sym]
-    [(= sym "@@")
-      'self]
-    [(.startswith sym "@")
-      `(. self ~@(amap (hy.models.Symbol it) (.split (cut sym 1 None) ".")))]
-    [(.startswith sym "is_@")
-      `(. self ~@(amap (hy.models.Symbol it) (.split (+ "is_" (cut sym (len "is_@") None)) ".")))]
-    [True
-      sym])))))
+    (in sym ["@" "@="])
+      sym
+    (= sym "@@")
+      'self
+    (.startswith sym "@")
+      `(. self ~@(amap (hy.models.Symbol it) (.split (cut sym 1 None) ".")))
+    (.startswith sym "is_@")
+      `(. self ~@(amap (hy.models.Symbol it) (.split (+ "is_" (cut sym (len "is_@") None)) ".")))
+    True
+      sym)))))
 
 (defmacro getl [obj key1 [key2 None] [key3 None]]
 ; Given a pd.DataFrame 'mtcars':
@@ -193,18 +193,18 @@ The value of the whole expression is that provided by 'ret' or
     (: ...)  =>  slice(...)
     anything else => itself"
   (cond
-    [(= key :)
-      '(slice None)]
-    [(and (isinstance key hy.models.Expression) (= (get key 0) :))
-      `(slice ~@(cut key 1 None))]
-    [True
-      key]))
+    (= key :)
+      '(slice None)
+    (and (isinstance key hy.models.Expression) (= (get key 0) :))
+      `(slice ~@(cut key 1 None))
+    True
+      key))
 
 (defn panda-get [attr obj key1 [key2 None] [key3 None]]
   `(get (. ~obj ~attr) ~(cond
-    [(is-not key3 None) `(, ~(parse-key key1) ~(parse-key key2) ~(parse-key key3))]
-    [(is-not key2 None) `(, ~(parse-key key1) ~(parse-key key2))]
-    [True (parse-key key1)])))
+    (is-not key3 None) `(, ~(parse-key key1) ~(parse-key key2) ~(parse-key key3))
+    (is-not key2 None) `(, ~(parse-key key1) ~(parse-key key2))
+    True (parse-key key1))))
 
 (defn dollar-replace [df-sym expr]
   (recur-sym-replace expr (fn [sym]
