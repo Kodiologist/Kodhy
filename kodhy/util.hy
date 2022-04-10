@@ -88,37 +88,25 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (+ v (np.random.uniform (- b) b (len v))))
 
 (defn valcounts [x [y None]]
-  (import  pandas :as pd  numpy :as np)
-  (setv [x y] (rmap [v [x y]]
-    (if (or (is v None) (isinstance v pd.Series))
+  (import pandas :as pd)
+
+  (setv [x y] (gfor v [x y] (cond
+    (is v None)
       v
+    (isinstance v pd.Series)
+      (if (= v.dtype "category")
+        (.cat.add-categories v "~N/A")
+        v)
+    True
       (pd.Series (list v)))))
-  (when (is y None) (return (.rename
-    ((if (in "float" (str x.dtype)) (fn [x] (.sort-index x)) identity)
-      (.value-counts x :sort F :dropna F))
-    (λ (if (pd.isnull it) (str "N/A") it)))))
-  (when (and x.name y.name (= x.name y.name))
-    ; Work around https://github.com/pandas-dev/pandas/issues/6319
-    (setv y (.copy y))
-    (setv y.name (+ y.name "2")))
-  (setv ct (pd.crosstab
-    (.replace x np.nan "~N/A") (.replace y np.nan "~N/A")))
-  ; If x or y are Categorical, reorder the rows and columns of the
-  ; output accordingly.
-  (when (isinstance x.dtype pd.api.types.CategoricalDtype)
-    (setv cats (+ (list x.cat.categories)
-      (if (in "~N/A" ct.index) ["~N/A"] [])))
-    (setv ct (getl ct cats)))
-  (when (isinstance y.dtype pd.api.types.CategoricalDtype)
-    (setv cats (+ (list y.cat.categories)
-      (if (in "~N/A" ct.columns) ["~N/A"] [])))
-    (setv ct (getl ct : cats)))
-  ; Name the index and columns.
-  (when x.name
-    (setv ct.index.name x.name))
-  (when y.name
-    (setv ct.columns.name y.name))
-  ct)
+
+  (if (is y None)
+    (.rename
+      ((if (in "float" (str x.dtype)) (fn [x] (.sort-index x)) identity)
+        (.value-counts x :sort F :dropna F))
+      (λ (if (pd.isnull it) (str "N/A") it)))
+    (pd.crosstab
+      (.fillna x "~N/A") (.fillna y "~N/A"))))
 
 (defn weighted-choice [l]
 ; The argument should be a list of (weight, object) pairs.
