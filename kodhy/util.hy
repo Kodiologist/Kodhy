@@ -108,6 +108,11 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     (pd.crosstab
       (.fillna x "~N/A") (.fillna y "~N/A"))))
 
+(defn valprops [x [y None] [d None]]
+  (setv out (valcounts x y))
+  (setv out (/ out (.sum out)))
+  (if (is d None) out (.round out :decimals d)))
+
 (defn weighted-choice [l]
 ; The argument should be a list of (weight, object) pairs.
 ; http://stackoverflow.com/a/3679747
