@@ -722,7 +722,8 @@ instead of calling `f` or consulting the existing cache."
       (.execute db "pragma foreign_keys = on")
 
       (setv sb (pd.read-sql-query :con db :index-col "sn"
-        :parse-dates (dict (amap (, it {"unit" "s"}) (qw consented_t began_t completed_t)))
+        :parse-dates (dfor k (qw consented_t began_t completed_t)
+          [k (dict  :unit "s"  :utc T)])
         "select
             sn, experimenter, ip, task,
             consented_t,
@@ -758,7 +759,8 @@ instead of calling `f` or consulting the existing cache."
         "select * from D where sn in (select * from IncludeSN)") : 0)))
 
       (setv timing (.sort-index (pd.read-sql-query :con db :index-col ["sn" "k"]
-        :parse-dates (dict (amap (, it {"unit" "s"}) (qw first_sent received)))
+        :parse-dates (dfor k (qw first_sent received)
+          [k (dict  :unit "s"  :utc T)])
         "select * from Timing where sn in (select * from IncludeSN)")))
 
       (setv sb.index (tversky-format-s sb.index))
