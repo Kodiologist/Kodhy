@@ -94,8 +94,8 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     (is v None)
       v
     (isinstance v pd.Series)
-      (if (= v.dtype "category")
-        (.cat.add-categories v "~N/A")
+      (if (and (= v.dtype "category") (.any (pd.isnull v)))
+        (.fillna (.cat.add-categories v "~N/A") "~N/A")
         v)
     True
       (pd.Series (list v)))))
@@ -104,7 +104,7 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
     (.rename
       ((if (in "float" (str x.dtype)) (fn [x] (.sort-index x)) identity)
         (.value-counts x :sort F :dropna F))
-      (λ (if (pd.isnull it) (str "N/A") it)))
+      (λ (if (pd.isnull it) "~N/A" it)))
     (pd.crosstab
       (.fillna x "~N/A") (.fillna y "~N/A"))))
 
