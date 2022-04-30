@@ -156,40 +156,39 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
 (defn cbind-join [join #* args]
   (import  pandas :as pd)
   (setv args (list args))
-  (setv index None)
+  (setv final-index None)
   (when (and (isinstance (first args) str) (= (first args) "I"))
     (shift args)
-    (setv index (shift args)))
+    (setv final-index (shift args)))
   (defn scalar? [x]
     (or (isinstance x str) (not (isinstance x Iterable))))
-  (setv height (max (amap
-    (if (scalar? it) 1 (len it))
-    args)))
-  (setv chunks [])
+  (setv height (max (gfor
+    a args
+    (if (scalar? a) 1 (len a)))))
+
+  (setv  chunks []  assume-index final-index)
   (while args
-    (setv x (shift args))
-    (if (isinstance x str)
-      (do
-        (setv chunk (shift args))
-        (setv chunk (cond
-          (isinstance chunk pd.Series)
-            (.copy chunk)
-          (scalar? chunk)
-            (pd.Series (* [chunk] height))
-          T
-            (pd.Series chunk)))
-        (setv chunk.name x)
-        (.append chunks chunk))
-      (.append chunks (cond
-          (isinstance x pd.DataFrame)
-            x
-          (scalar? x)
-            (pd.Series (* [x] height))
-          T
-            (pd.Series x)))))
+    (setv  name None  x (shift args))
+    (when (isinstance x str)
+      (setv  name x  x (shift args)))
+    (when (and
+        (is assume-index None)
+        (isinstance x (, pd.Series pd.DataFrame)))
+      (setv assume-index x.index))
+    (setv x (cond
+      (isinstance x (, pd.Series pd.DataFrame))
+        (if name (.copy x) x)
+      (scalar? x)
+        (pd.Series (* [x] height) :index assume-index)
+      T
+        (pd.Series x)))
+    (when name
+      (setv x.name name))
+    (.append chunks x))
+
   (setv result (pd.concat :objs chunks :axis 1 :join join))
-  (unless (is index None)
-    (setv (. result index) index))
+  (unless (is final-index None)
+    (setv result.index final-index))
   result)
 
 (defn df-from-pairs [l]
