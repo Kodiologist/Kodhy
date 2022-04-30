@@ -173,10 +173,10 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
       (setv  name x  x (shift args)))
     (when (and
         (is assume-index None)
-        (isinstance x (, pd.Series pd.DataFrame)))
+        (isinstance x #(pd.Series pd.DataFrame)))
       (setv assume-index x.index))
     (setv x (cond
-      (isinstance x (, pd.Series pd.DataFrame))
+      (isinstance x #(pd.Series pd.DataFrame))
         (if name (.copy x) x)
       (scalar? x)
         (pd.Series (* [x] height) :index assume-index)
@@ -263,9 +263,9 @@ for each first-order interaction. Constant columns are removed."
       (when column-names
         (tuple (sorted [(get column-names v1) (get column-names v2)])))
       (np.multiply (geta m : v1) (geta m : v2)))))))
-  (setv new-m (np.column-stack (+ (, m) new-cols)))
+  (setv new-m (np.column-stack (+ #(m) new-cols)))
   (if column-names
-    (, new-m (+ (tuple column-names) new-names))
+    #(new-m (+ (tuple column-names) new-names))
     new-m))
 
 (defn print-big-pd [obj]
@@ -285,8 +285,8 @@ for each first-order interaction. Constant columns are removed."
 
   (setv (get out "categories") (OrderedDict (rmap [col (ssi df.dtypes (= $ "category"))]
     [col (OrderedDict [
-      (, "ordered" (. (getl df : col) cat ordered))
-      (, "categories" (list (. (getl df : col) cat categories)))])])))
+      #("ordered" (. (getl df : col) cat ordered))
+      #("categories" (list (. (getl df : col) cat categories)))])])))
   (unless (get out "categories")
     (del (get out "categories")))
 
@@ -351,7 +351,7 @@ without newlines outside string literals."
     (isinstance x list)
       (.format "[{}]" (.join " " (list (map show-expr x))))
     (isinstance x tuple)
-      (.format "(, {})" (.join " " (list (map show-expr x))))
+      (.format "#({})" (.join " " (list (map show-expr x))))
     (isinstance x str)
       (double-quote (str x))
     T
@@ -433,7 +433,7 @@ without newlines outside string literals."
   (setv a (list a))
   (setv r [])
   (while a
-    (.append r (, (keyword->str (shift a)) (keyword->str (shift a)))))
+    (.append r #((keyword->str (shift a)) (keyword->str (shift a)))))
   r)
 
 (defn by-ns [n iterable]
@@ -444,7 +444,7 @@ without newlines outside string literals."
 (defn iter-with-prev [iterable]
   (setv prev None)
   (for [item iterable]
-    (yield (, prev item))
+    (yield #(prev item))
     (setv prev item)))
 
 (defn iter-with-prev1 [iterable]
@@ -476,9 +476,9 @@ without newlines outside string literals."
     (import codecs)
     (setv f codecs.open))
   (with [o (f name #** (dict (+
-      (if (is mode None)      [] [(, "mode" mode)])
-      (if (is encoding None)  [] [(, "encoding" encoding)])
-      (if (is buffering None) [] [(, "buffering" buffering)]))))]
+      (if (is mode None)      [] [#("mode" mode)])
+      (if (is encoding None)  [] [#("encoding" encoding)])
+      (if (is buffering None) [] [#("buffering" buffering)]))))]
     (o.read)))
 
 (defn barf [name content [mode "w"] [encoding None] [buffering None]]
@@ -487,8 +487,8 @@ without newlines outside string literals."
     (import codecs)
     (setv f codecs.open))
   (with [o (f name mode #** (dict (+
-      (if (is encoding None)  [] [(, "encoding" encoding)])
-      (if (is buffering None) [] [(, "buffering" buffering)]))))]
+      (if (is encoding None)  [] [#("encoding" encoding)])
+      (if (is buffering None) [] [#("buffering" buffering)]))))]
     (o.write content)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -501,27 +501,27 @@ without newlines outside string literals."
   ; option defaults.
   (import json uuid)
   (for [[option value] [
-      ["indent" 2] ["separators" (, "," ": ")] ["sort_keys" T]]]
+      ["indent" 2] ["separators" #("," ": ")] ["sort_keys" T]]]
     (when (is (.get kwargs option None))
       (setv (get kwargs option) value)))
   (setv substituted-parts {})
   (defn recursive-subst [x]
     ; Replaces lists or dictionaries of atomic values with UUID
     ; strings.
-    (if (isinstance x (, list tuple dict))
+    (if (isinstance x #(list tuple dict))
       (if (all (lc [v (if (isinstance x dict) (.values x) x)]
-            (isinstance v (, bool (type None) int float str bytes))))
+            (isinstance v #(bool (type None) int float str bytes))))
         (do
           (setv my-id (. (uuid.uuid4) hex))
           (setv (get substituted-parts my-id) x)
           my-id)
         (if (isinstance x dict)
-          ((type x) (lc [[k v] (.items x)] (, k (recursive-subst v))))
+          ((type x) (lc [[k v] (.items x)] #(k (recursive-subst v))))
           (lc [v x] (recursive-subst v))))
       x))
   (setv json-str (json.dumps (recursive-subst o) #** kwargs))
   (setv (get kwargs "indent") None)
-  (setv (get kwargs "separators") (, ", " ": "))
+  (setv (get kwargs "separators") #(", " ": "))
   (for [[my-id x] (.items substituted-parts)]
     (setv json-str (.replace json-str (+ "\"" my-id "\"")
       (.rstrip (json.dumps x #** kwargs))
@@ -593,7 +593,7 @@ and should return a 1D nparray of predictions given x-test."
 
   (setv initial-state (,
     (tuple (sorted (.values (Counter labels))))
-    (* (, (,)) n-bins)))
+    (* #((,)) n-bins)))
 
   (setv states (set [initial-state]))
   (setv explore [initial-state])
@@ -615,14 +615,14 @@ and should return a 1D nparray of predictions given x-test."
       (.add rseen x)
       (setv new-remaining (+ (cut remaining 0 r-i) (cut remaining (+ r-i 1) None)))
       (for [b-i (range n-bins)]
-        (setv new-bin (+ (get bins b-i) (, x)))
+        (setv new-bin (+ (get bins b-i) #(x)))
         (when (and max-bin-size (> (sum new-bin) max-bin-size))
           (continue))
         (setv new-bins (tuple (sorted (+
           (cut bins b-i)
-          (, (tuple (sorted new-bin)))
+          #((tuple (sorted new-bin)))
           (cut bins (+ b-i 1) None)))))
-        (setv new-state (, new-remaining new-bins))
+        (setv new-state #(new-remaining new-bins))
         (when (in new-state states)
           (continue))
         (.add states new-state)
@@ -752,7 +752,7 @@ instead of calling `f` or consulting the existing cache."
         (setv sb (.dropna sb :subset ["completed_t"])))
 
       (.execute db "create temporary table IncludeSN(sn integer primary key)")
-      (.executemany db "insert into IncludeSN (sn) values (?)" (amap (, it) sb.index))
+      (.executemany db "insert into IncludeSN (sn) values (?)" (amap #(it) sb.index))
 
       (setv dat (.sort-index (geti (pd.read-sql-query :con db :index-col ["sn" "k"]
         "select * from D where sn in (select * from IncludeSN)") : 0)))
@@ -767,7 +767,7 @@ instead of calling `f` or consulting the existing cache."
         (setv df.index (.set-levels df.index :level "sn"
           (tversky-format-s (first df.index.levels)))))
 
-      (, sb dat timing))
+      #(sb dat timing))
 
     (finally
       (.close db))))
@@ -866,7 +866,7 @@ like a histogram. Missing values are silently ignored."
     numpy [isnan])
 
   (when (is group None)
-    (setv group (* (, True) (len xs))))
+    (setv group (* #(True) (len xs))))
   (assert (= (len group) (len xs)))
   (setv levels (unique group))
   (setv group-vert-space (* 3 diam))
@@ -908,9 +908,9 @@ like a histogram. Missing values are silently ignored."
   (.add-collection ax (PatchCollection #** kwargs
     (if (.pop kwargs "rect" F)
       (lfor  [x0 y0] (zip x y)
-        (plt.Rectangle (, (- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))
+        (plt.Rectangle #((- x0 (/ diam 2)) (- y0 (/ diam 2))) diam diam))
       (lfor  [x0 y0] (zip x y)
-        (plt.Circle (, x0 y0) (/ diam 2))))))
+        (plt.Circle #(x0 y0) (/ diam 2))))))
 
   ; Add the level labels.
   (when (> (len levels) 1)

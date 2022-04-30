@@ -63,7 +63,7 @@
   `(dict (map
     (fn [~g!pair]
       (setv it (get ~g!pair 1))
-      (, (get ~g!pair 0) ~expr))
+      #((get ~g!pair 0) ~expr))
     (.items ~d))))
 
 (defmacro/g! tally [expr args]
@@ -143,7 +143,7 @@ The value of the whole expression is that provided by 'ret' or
 (defmacro qw [#* words]
 "(qw foo bar baz \"a b\" 5) => ['foo', 'bar', 'baz', 'a b', '5']"
   (hy.models.List (gfor  w words  (hy.models.String
-    (if (isinstance w (, hy.models.Symbol hy.models.String))
+    (if (isinstance w #(hy.models.Symbol hy.models.String))
       w
       (.lstrip (hy.repr w) "'"))))))
 
@@ -186,7 +186,7 @@ The value of the whole expression is that provided by 'ret' or
 
 (defmacro geta [obj #* keys]
 "For numpy arrays."
-  `(get ~obj (, ~@(map parse-key keys))))
+  `(get ~obj #(~@(map parse-key keys))))
 
 (defn parse-key [key]
 "Keys can be:
@@ -203,8 +203,8 @@ The value of the whole expression is that provided by 'ret' or
 
 (defn panda-get [attr obj key1 [key2 None] [key3 None]]
   `(get (. ~obj ~attr) ~(cond
-    (is-not key3 None) `(, ~(parse-key key1) ~(parse-key key2) ~(parse-key key3))
-    (is-not key2 None) `(, ~(parse-key key1) ~(parse-key key2))
+    (is-not key3 None) `#(~(parse-key key1) ~(parse-key key2) ~(parse-key key3))
+    (is-not key2 None) `#(~(parse-key key1) ~(parse-key key2))
     True (parse-key key1))))
 
 (defn dollar-replace [df-sym expr]
