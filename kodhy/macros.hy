@@ -8,10 +8,11 @@
 (defmacro incf [expr]
   `(+= ~expr 1))
 
-(defmacro "#p" [expr]
+(defreader p
   ; Pun.
   ; #p a  =>  {"a" a}
   ; #p [a b c]  =>  {"a" a  "b" b  "c" c}
+  (setv expr (.parse-one-form &reader))
   (when (isinstance expr hy.models.Symbol)
     (setv expr [expr]))
   (hy.models.Dict (+ #* (lfor x expr [(str x) x]))))
