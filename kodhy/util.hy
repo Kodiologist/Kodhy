@@ -498,7 +498,7 @@ without newlines outside string literals."
   (import json uuid)
   (for [[option value] [
       ["indent" 2] ["separators" #("," ": ")] ["sort_keys" T]]]
-    (when (is (.get kwargs option None))
+    (when (is (.get kwargs option) None)
       (setv (get kwargs option) value)))
   (setv substituted-parts {})
   (defn recursive-subst [x]
