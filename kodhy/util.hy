@@ -386,10 +386,6 @@ without newlines outside string literals."
 (defn shift [l]
   (.pop l 0))
 
-(defn unique [l]
-  (setv seen (set))
-  (filt (when (not-in it seen) (.add seen it) T) l))
-
 (defn all-unique? [l]
   (setv seen (set))
   (for [x l]
@@ -863,12 +859,13 @@ like a histogram. Missing values are silently ignored."
   (import
     matplotlib.pyplot :as plt
     matplotlib.collections [PatchCollection]
-    numpy [isnan])
+    numpy [isnan]
+    toolz [unique])
 
   (when (is group None)
     (setv group (* #(True) (len xs))))
   (assert (= (len group) (len xs)))
-  (setv levels (unique group))
+  (setv levels (list (unique group)))
   (setv group-vert-space (* 3 diam))
 
   (setv rows (dfor  l levels  l []))
