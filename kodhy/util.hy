@@ -722,7 +722,7 @@ instead of calling `f` or consulting the existing cache."
 
       (setv sb (pd.read-sql-query :con db :index-col "sn"
         :parse-dates (dfor k (qw consented_t began_t completed_t)
-          [k (dict  :unit "s"  :utc T)])
+          k (dict  :unit "s"  :utc T))
         "select
             sn, experimenter, ip, task,
             consented_t,
@@ -759,7 +759,7 @@ instead of calling `f` or consulting the existing cache."
 
       (setv timing (.sort-index (pd.read-sql-query :con db :index-col ["sn" "k"]
         :parse-dates (dfor k (qw first_sent received)
-          [k (dict  :unit "s"  :utc T)])
+          k (dict  :unit "s"  :utc T))
         "select * from Timing where sn in (select * from IncludeSN)")))
 
       (setv sb.index (tversky-format-s sb.index))
@@ -871,7 +871,7 @@ like a histogram. Missing values are silently ignored."
   (setv levels (unique group))
   (setv group-vert-space (* 3 diam))
 
-  (setv rows (dfor  l levels  [l []]))
+  (setv rows (dfor  l levels  l []))
   (for [[x g] (sorted (gfor
           [x g] (zip xs group)
           :if (and (not (isnan x)) (is-not x None)) [x g]))]
