@@ -1,5 +1,5 @@
 (require
-  hyrule [defmacro/g!])
+  hyrule [defmacro!])
 
 (import
   collections
@@ -26,7 +26,7 @@
     ~@(if a2 [:if a1] [])
     ~(or a2 a1)))
 
-(defmacro/g! rmap [arglist #* expr]
+(defmacro! rmap [arglist #* expr]
 ; (rmap [[i x] (enumerate "xyzzy")] (setv y (.upper x)) (+ (str i) y))
 ;   => ["0X" "1Y" "2Z" "3Z" "4Y"]
   (setv [lvalue args] arglist)
@@ -46,7 +46,7 @@
 (defmacro fmap [gen-expr filter-expr args]
   `(lfor  it ~args  :if ~filter-expr  ~gen-expr))
 
-(defmacro/g! amap2 [expr args]
+(defmacro! amap2 [expr args]
 ; (amap2 (+ a b) (range 10))  =>  [1 5 9 13 17]
   `(do
     (setv ~g!args (list ~args))
@@ -59,14 +59,14 @@
         ~expr)
       (range 0 (len ~g!args) 2)))))
 
-(defmacro/g! map-dvals [expr d]
+(defmacro! map-dvals [expr d]
   `(dict (map
     (fn [~g!pair]
       (setv it (get ~g!pair 1))
       #((get ~g!pair 0) ~expr))
     (.items ~d))))
 
-(defmacro/g! tally [expr args]
+(defmacro! tally [expr args]
   `(do
     (setv ~g!n 0)
     (for [it ~args]
@@ -260,7 +260,7 @@ absolute value of the column `baz`, then by `bar`."
       (.groupby ~df-sym ~(dollar-replace df-sym by))
       (fn [~it-sym] ~@(dollar-replace it-sym body)))))
 
-(defmacro/g! cbind [#* args]
+(defmacro! cbind [#* args]
  `(do
     (import  kodhy.util [cbind-join :as ~g!cj])
     (~g!cj "outer" ~@(gfor a args
