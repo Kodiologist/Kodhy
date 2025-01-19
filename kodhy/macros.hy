@@ -182,7 +182,7 @@ The value of the whole expression is that provided by 'ret' or
 (defmacro $ [obj key]
 ; Given a pd.DataFrame 'mtcars':
 ;     ($ mtcars hp)            =>  the column "hp"
-  (panda-get 'loc obj COLON (hy.models.String key)))
+  `(get ~obj ~(hy.models.String key)))
 
 (defmacro geta [obj #* keys]
 "For numpy arrays."
