@@ -146,8 +146,13 @@ Gelman, A. (2008). Scaling regression inputs by dividing by two standard deviati
   (setv d (dict kv))
   (unless (= (sorted x.cat.categories) (sorted (.keys d)))
     (raise (ValueError "original categories don't match")))
-  (.astype (.replace x d) (pd.api.types.CategoricalDtype :categories
-    (distinct (gfor [_ v] kv :if (not (pd.isnull v)) v)))))
+  (.astype
+    (.replace (.astype x object) d)
+    (pd.api.types.CategoricalDtype :categories (distinct
+      (gfor
+        [_ v] kv
+        :if (not (pd.isnull v))
+        v)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Matrices and DataFrames
