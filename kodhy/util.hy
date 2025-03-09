@@ -771,19 +771,6 @@ instead of calling `f` or consulting the existing cache."
       (.close db))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; * Support for kodhy.macros
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defclass _KodhyBlockReturn [Exception]
-  (setv __init__ (meth [block-name value]
-    (setv @block-name block-name)
-    (setv @value value))))
-
-(defn ret [[value None]]
-"Return from the innermost 'block'."
-  (raise (_KodhyBlockReturn None value)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; * Interoperability with R
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

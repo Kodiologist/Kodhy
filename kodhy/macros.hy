@@ -98,33 +98,6 @@ value bound to 'it'."
 (defmacro replicate [n #* body]
   `(list (map (fn [_] ~@body) (range ~n))))
 
-(defmacro block [#* body]
-"Evaluate the given expressions while allowing you to jump out
-with kodhy.util.ret and kodhy.util.retf. If the first element of
-'body' is a keyword, it becomes the name of the block.
-
-The value of the whole expression is that provided by 'ret' or
-'retf', if one of those was used, or the last expression otherwise."
-  (setv block-name 'None)
-  (when (and body (isinstance (get body 0) hy.models.Keyword))
-    (setv [block-name body] [(str (get body 0)) (cut body 1 None)]))
-  (setv r (hy.gensym))
-  `(do (import  kodhy.util [_KodhyBlockReturn]) (try
-    (do ~@body)
-    (except [~r _KodhyBlockReturn]
-      (if (and (. ~r block-name) (!= (. ~r block-name) ~block-name))
-        ; If the return named a block, and its name doesn't
-        ; match ours, keep bubbling upwards.
-        (raise)
-        ; Otherwise, we can stop here. Return the return value.
-        (. ~r value))))))
-
-(defmacro retf [block-name [value 'None]]
-  (assert (isinstance block-name hy.models.Keyword))
-  `(do
-    (import  kodhy.util [_KodhyBlockReturn])
-    (raise (_KodhyBlockReturn ~(str block-name) ~value))))
-
 (defn recur-sym-replace [expr f] (cond
   ; Recursive symbol replacement.
   (isinstance expr hy.models.Symbol)
