@@ -120,26 +120,6 @@ value bound to 'it'."
       w
       (.lstrip (hy.repr w) "'"))))))
 
-(defmacro meth [param-list #* body]
-"(meth [foo] (+ @bar foo))  =>  (fn [self foo] (+ self.bar foo))"
-  (meth-f param-list body))
-
-(defmacro cmeth [param-list #* body]
-  `(classmethod ~(meth-f param-list body)))
-
-(defn meth-f [param-list body]
-  `(fn [self ~@param-list] ~@(recur-sym-replace body (fn [sym] (cond
-    (in sym ["@" "@="])
-      sym
-    (= sym "@@")
-      'self
-    (.startswith sym "@")
-      `(. self ~@(amap (hy.models.Symbol it) (.split (cut sym 1 None) ".")))
-    (.startswith sym "is_@")
-      `(. self ~@(amap (hy.models.Symbol it) (.split (+ "is_" (cut sym (len "is_@") None)) ".")))
-    True
-      sym)))))
-
 (defmacro getl [obj key1 [key2 None] [key3 None]]
 ; Given a pd.DataFrame 'mtcars':
 ;    (getl mtcars "4 Drive" "hp")    =>  the cell "4 Drive", "hp"
