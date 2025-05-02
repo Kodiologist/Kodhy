@@ -240,13 +240,11 @@ absolute value of the column `baz`, then by `bar`."
       (if (isinstance a hy.models.Keyword) a.name a)))))
 
 (defmacro cached [expr [bypass 'None] [cache-dir 'None]]
-  `(do
-     (import kodhy.util)
-     (kodhy.util.cached-eval
-       (kodhy.util.show-expr '~expr)
-       (fn [] ~expr)
-       ~bypass
-       ~cache-dir)))
+   `(hy.I.kodhy/util.cached-eval
+     (hy.repr '~expr)
+     (fn [] ~expr)
+     ~bypass
+     ~cache-dir))
 
 (defmacro show-time-elapsed [#* expr]
   (setv t (hy.gensym))
